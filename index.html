@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Guiding Light</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#241C16; --panel:#322620; --panel2:#3E2F25; --line:#4F3E32;
+  --cream:#F5F1EB; --muted:#BCAB98; --mocha:#8B6F5A; --mocha-light:#A98A72;
+  --gold:#D9A14B; --gold-soft:rgba(217,161,75,.14); --green:#7FA06A;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--cream);
+  font-family:ui-sans-serif,-apple-system,"Segoe UI",Roboto,sans-serif;
+  line-height:1.5; -webkit-font-smoothing:antialiased;
+  padding-bottom:84px;
+}
+.serif{font-family:"Cormorant Garamond",Georgia,serif}
+.ar{font-family:"Amiri",serif;direction:rtl;line-height:1.9}
+.wrap{max-width:620px;margin:0 auto;padding:0 18px}
+button{font-family:inherit;cursor:pointer}
+.hidden{display:none!important}
+
+/* top header */
+header{padding:30px 0 14px}
+.eyebrow{font-size:10.5px;letter-spacing:.34em;text-transform:uppercase;color:var(--gold);font-weight:600;margin:0}
+.h-title{font-weight:500;font-size:clamp(30px,8vw,42px);line-height:1.05;margin:6px 0 0;letter-spacing:.4px}
+.h-title em{font-style:italic;color:var(--gold)}
+.h-back{background:none;border:none;color:var(--gold);font-size:14px;padding:6px 0;margin-bottom:2px}
+
+/* home hero with light */
+.hero{position:relative;text-align:center;padding:34px 0 18px;overflow:hidden}
+.beam{position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:340px;height:340px;
+  background:radial-gradient(circle at 50% 30%, var(--gold-soft) 0%, transparent 62%);pointer-events:none}
+.lighthouse{position:relative;width:42px;height:auto;margin:0 auto 14px;display:block;opacity:.92}
+.hello{font-size:11px;letter-spacing:.34em;text-transform:uppercase;color:var(--gold);margin:0}
+.hero h1{font-weight:500;font-size:clamp(38px,11vw,56px);margin:8px 0 4px;letter-spacing:.5px}
+.meaning{color:var(--muted);font-style:italic;font-size:18px;margin:0}
+.dates{color:var(--muted);font-size:12.5px;margin:14px 0 0;letter-spacing:.04em}
+.dates b{color:var(--cream);font-weight:600}
+
+/* cards */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin:14px 0}
+.card-soft{background:var(--gold-soft);border:1px solid rgba(217,161,75,.25)}
+.label{font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);font-weight:600;margin:0 0 8px}
+.sub{color:var(--muted);font-size:13px;margin:2px 0}
+h2.sec{font-weight:500;font-size:28px;margin:2px 0 2px}
+
+/* affirmation */
+#affirm .ar{font-size:24px;color:var(--cream);margin:4px 0 10px;text-align:right}
+#affirm .tr{font-style:italic;font-size:17px;color:var(--cream);margin:0 0 8px}
+#affirm .en{color:var(--muted);font-size:13.5px;margin:0}
+.shuffle{margin-top:14px;background:none;border:1px solid var(--line);color:var(--gold);
+  border-radius:20px;padding:7px 16px;font-size:12px;letter-spacing:.04em}
+
+/* quick salah on home */
+.qsalah{display:flex;justify-content:space-between;gap:6px;margin-top:6px}
+.qsalah .p{flex:1;text-align:center;font-size:11px;color:var(--muted)}
+.qsalah .dotq{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--mocha);margin:0 auto 5px}
+.qsalah .dotq.on{background:var(--mocha);border-color:var(--mocha)}
+.qsalah .dotq.ot{background:var(--gold);border-color:var(--gold)}
+
+/* home menu grid */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 16px;text-align:left;color:var(--cream)}
+.tile .t-ic{font-size:20px;display:block;margin-bottom:8px}
+.tile .t-n{font-family:"Cormorant Garamond",serif;font-size:22px;font-weight:500}
+.tile .t-d{color:var(--muted);font-size:11.5px;margin-top:2px}
+
+/* salah view */
+.streak{display:flex;align-items:baseline;gap:8px}
+.streak .num{font-family:"Cormorant Garamond",serif;font-size:46px;color:var(--gold);line-height:1}
+.salah-row{display:flex;align-items:center;justify-content:space-between;padding:16px 2px;border-top:1px solid var(--line)}
+.salah-row:first-of-type{border-top:none}
+.salah-row .n{font-family:"Cormorant Garamond",serif;font-size:24px}
+.salah-row .ar-s{font-family:"Amiri",serif;color:var(--muted);font-size:15px;margin-left:8px}
+.sdot{width:46px;height:46px;border-radius:50%;border:2px solid var(--mocha);background:transparent;position:relative;transition:.18s}
+.sdot.on{background:var(--mocha);border-color:var(--mocha)}
+.sdot.ot{background:var(--gold);border-color:var(--gold)}
+.sdot.on::after,.sdot.ot::after{content:"";position:absolute;inset:0;margin:auto;width:13px;height:7px;
+  border-left:2px solid var(--bg);border-bottom:2px solid var(--bg);transform:rotate(-45deg);margin-top:-2px}
+.legend{display:flex;gap:16px;font-size:11.5px;color:var(--muted);margin-top:4px;flex-wrap:wrap}
+.legend i{width:13px;height:13px;border-radius:50%;display:inline-block;vertical-align:-2px;margin-right:5px}
+
+/* dhikr */
+.tabs{display:flex;gap:8px;margin:8px 0 4px}
+.tab{flex:1;background:var(--panel);border:1px solid var(--line);color:var(--muted);border-radius:10px;padding:9px;font-size:12.5px;letter-spacing:.03em}
+.tab.active{background:var(--gold-soft);border-color:rgba(217,161,75,.4);color:var(--gold);font-weight:600}
+.counter{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 14px 16px;margin:10px 0}
+.counter .ct{font-family:"Cormorant Garamond",serif;font-size:20px;line-height:1.2}
+.counter .car{font-family:"Amiri",serif;font-size:18px;color:var(--muted);text-align:right;margin:2px 0 8px}
+.cbar{height:6px;background:var(--line);border-radius:4px;overflow:hidden;margin:8px 0}
+.cbar i{display:block;height:100%;background:var(--gold);width:0;transition:width .25s}
+.crow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.tapbtn{flex:1;background:var(--mocha);color:var(--cream);border:none;border-radius:12px;padding:16px;font-size:15px;
+  font-weight:600;letter-spacing:.04em;transition:transform .08s}
+.tapbtn:active{transform:scale(.97)}
+.counter.done .tapbtn{background:var(--gold);color:var(--bg)}
+.cnum{font-variant-numeric:tabular-nums;font-size:14px;color:var(--muted);min-width:78px;text-align:right}
+.cnum b{color:var(--cream);font-size:18px}
+.mini{background:none;border:1px solid var(--line);color:var(--muted);border-radius:9px;padding:10px 12px;font-size:13px}
+
+.dua{border-top:1px solid var(--line);padding:14px 0}
+.dua:first-of-type{border-top:none}
+.dua-head{display:flex;align-items:flex-start;gap:12px}
+.dcheck{flex-shrink:0;width:30px;height:30px;border-radius:50%;border:2px solid var(--mocha);background:transparent;position:relative;margin-top:2px}
+.dcheck.on{background:var(--mocha);border-color:var(--mocha)}
+.dcheck.on::after{content:"";position:absolute;inset:0;margin:auto;width:9px;height:5px;border-left:2px solid var(--bg);border-bottom:2px solid var(--bg);transform:rotate(-45deg);margin-top:-1px}
+.dua .dtr{font-style:italic;font-size:15px;flex:1}
+.dua .dexp{color:var(--gold);font-size:11px;letter-spacing:.04em;margin-top:6px;background:none;border:none;padding:0}
+.dua .body{display:none;margin-top:10px;padding-left:42px}
+.dua .body.show{display:block}
+.dua .body .ar{font-size:22px;color:var(--cream);text-align:right;margin-bottom:8px}
+.dua .body .en{color:var(--muted);font-size:13px}
+
+/* fasting */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:10px}
+.cal .dow{text-align:center;font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;padding-bottom:4px}
+.day{aspect-ratio:1;border:1px solid var(--line);border-radius:9px;background:var(--panel);position:relative;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--cream);font-size:13px;padding:0}
+.day.empty{border:none;background:none}
+.day.rec{border-color:var(--gold);color:var(--gold)}
+.day.fasted{background:var(--gold);color:var(--bg);border-color:var(--gold);font-weight:700}
+.day .hd{font-size:8px;opacity:.6;position:absolute;top:3px;right:4px}
+.day .sp{font-size:7px;letter-spacing:.04em;position:absolute;bottom:3px;color:inherit;opacity:.85}
+.day.today{box-shadow:0 0 0 2px var(--cream)}
+
+/* habits / reading / generic items */
+.item{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:15px;margin:10px 0}
+.item .hbtop{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.item .hn{font-family:"Cormorant Garamond",serif;font-size:22px}
+.item .meta{color:var(--muted);font-size:12px;margin-top:3px}
+.item .meta b{color:var(--gold)}
+.hcheck{flex-shrink:0;width:40px;height:40px;border-radius:50%;border:2px solid var(--mocha);background:transparent;position:relative}
+.hcheck.on{background:var(--gold);border-color:var(--gold)}
+.hcheck.on::after{content:"";position:absolute;inset:0;margin:auto;width:11px;height:6px;border-left:2px solid var(--bg);border-bottom:2px solid var(--bg);transform:rotate(-45deg);margin-top:-1px}
+.addbtn{width:100%;background:none;border:1.5px dashed var(--line);color:var(--gold);border-radius:13px;padding:14px;font-size:13.5px;letter-spacing:.03em;margin-top:6px}
+.del{background:none;border:none;color:var(--mocha);font-size:11px;padding:4px}
+input,textarea,select{font-family:inherit;background:var(--bg);border:1px solid var(--line);color:var(--cream);
+  border-radius:9px;padding:11px;font-size:14px;width:100%;margin:5px 0}
+textarea{min-height:70px;resize:vertical}
+label.fld{font-size:11px;color:var(--muted);letter-spacing:.04em;display:block;margin-top:8px}
+.primary{background:var(--gold);color:var(--bg);border:none;border-radius:10px;padding:12px 18px;font-weight:600;font-size:14px;width:100%;margin-top:8px}
+.ghost{background:none;border:1px solid var(--line);color:var(--cream);border-radius:10px;padding:12px;font-size:13px;width:100%;margin-top:6px}
+.progress{height:7px;background:var(--line);border-radius:4px;overflow:hidden;margin:8px 0}
+.progress i{display:block;height:100%;background:var(--gold)}
+
+/* journal */
+.jentry{border-top:1px solid var(--line);padding:13px 0}
+.jentry .jd{font-size:11px;color:var(--gold);letter-spacing:.05em}
+.jentry .jt{font-family:"Cormorant Garamond",serif;font-size:17px;margin-top:3px;white-space:pre-wrap}
+
+/* becoming */
+.vis label.fld{margin-top:14px;font-size:13px;color:var(--gold);letter-spacing:.16em;text-transform:uppercase}
+
+/* solo dates */
+.solo{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.scard{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;position:relative}
+.scard .ph{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:var(--panel2)}
+.scard .ph-empty{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;color:var(--mocha);font-size:30px;background:var(--panel2)}
+.scard .st{padding:10px 12px}
+.scard .stn{font-family:"Cormorant Garamond",serif;font-size:16px;line-height:1.15}
+.scard .sact{display:block;width:100%;background:var(--gold-soft);border:none;border-top:1px solid var(--line);color:var(--gold);padding:9px;font-size:11.5px;letter-spacing:.05em}
+.scard.done .sact{color:var(--green)}
+.scard .badge{position:absolute;top:8px;right:8px;background:var(--gold);color:var(--bg);font-size:9px;font-weight:700;
+  padding:3px 7px;border-radius:20px;letter-spacing:.06em}
+
+/* note */
+.note{color:var(--muted);font-size:12px;line-height:1.6;margin:18px 0 4px}
+.note b{color:var(--mocha)}
+
+/* bottom nav */
+nav{position:fixed;bottom:0;left:0;right:0;background:rgba(36,28,22,.96);backdrop-filter:blur(8px);
+  border-top:1px solid var(--line);display:flex;z-index:50;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;background:none;border:none;color:var(--muted);padding:9px 2px 11px;font-size:9.5px;letter-spacing:.05em}
+nav button .ic{display:block;font-size:19px;line-height:1.2;margin-bottom:1px}
+nav button.active{color:var(--gold)}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div id="app" class="wrap"></div>
+
+<nav>
+  <button data-v="home"><span class="ic">✦</span>Home</button>
+  <button data-v="salah"><span class="ic">☾</span>Salah</button>
+  <button data-v="dhikr"><span class="ic">۩</span>Dhikr</button>
+  <button data-v="fasting"><span class="ic">◐</span>Fasting</button>
+  <button data-v="more"><span class="ic">❀</span>More</button>
+</nav>
+
+<script>
+/* ---------- storage ---------- */
+const STORE="guidingLight";
+let S={};
+function load(){ try{S=JSON.parse(localStorage.getItem(STORE))||{};}catch(e){S={};} seed(); }
+function save(){ try{localStorage.setItem(STORE,JSON.stringify(S));}catch(e){
+  alert("Couldn't save — your phone storage may be full (photos take the most space).");} }
+function seed(){
+  S.salah=S.salah||{}; S.dhikrCheck=S.dhikrCheck||{}; S.dhikrCount=S.dhikrCount||{};
+  S.fasting=S.fasting||{}; S.habitLog=S.habitLog||{}; S.journal=S.journal||[];
+  S.vision=S.vision||{}; S.soloDone=S.soloDone||{}; S.soloCustom=S.soloCustom||[];
+  if(!S.habits) S.habits=[
+    {id:"h1",name:"Move my body",identity:"I'm someone who takes care of the amanah I was given.",two:"Put on my shoes and step outside.",stack:"After Asr, I will go for a short walk."},
+    {id:"h2",name:"Read 5 minutes",identity:"I'm someone who grows her mind.",two:"Open the book and read one page.",stack:"After Maghrib, I will read a little."},
+    {id:"h3",name:"Gratitude — 3 things",identity:"I'm someone who notices Allah's blessings.",two:"Name one thing out loud.",stack:"After Isha, I will list three blessings."}
+  ];
+  if(!S.books) S.books=[{id:"b1",title:"Atomic Habits",author:"James Clear",total:320,current:0,notes:""}];
+}
+
+/* ---------- date helpers ---------- */
+function tkey(d){d=d||new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function hijri(d){
+  try{return new Intl.DateTimeFormat("en-TN-u-ca-islamic-umalqura",{day:"numeric",month:"long",year:"numeric"}).format(d)+" AH";}
+  catch(e){return "";}
+}
+function hijriDM(d){
+  try{
+    const p=new Intl.DateTimeFormat("en-u-ca-islamic-umalqura",{day:"numeric",month:"numeric"}).formatToParts(d);
+    let day,mon; p.forEach(x=>{if(x.type=="day")day=+x.value;if(x.type=="month")mon=+x.value;});
+    return {day,mon};
+  }catch(e){return null;}
+}
+function gregLong(d){return new Intl.DateTimeFormat("en-GB",{weekday:"long",day:"numeric",month:"long"}).format(d);}
+
+/* ---------- gentle streak (consecutive days, forgiving today) ---------- */
+function streakDays(predicate){
+  let n=0; let d=new Date(); 
+  // if today not yet satisfied, start counting from yesterday so an unfinished today doesn't read as broken
+  if(!predicate(tkey(d))){ d.setDate(d.getDate()-1); }
+  while(predicate(tkey(d))){ n++; d.setDate(d.getDate()-1); }
+  return n;
+}
+function salahComplete(k){const s=S.salah[k];if(!s)return false;return ["fajr","dhuhr","asr","maghrib","isha"].every(p=>s[p]>=1);}
+
+/* ---------- DATA: daily du'as (Manar's list) ---------- */
+const DUAS=[
+{tr:`Allāhumma ighfir lī wa li-wālidayya wa lil-mu'minīna wal-mu'mināt wal-muslimīna wal-muslimāt, al-aḥyā'i minhum wal-amwāt`,
+ ar:`اللَّهُمَّ اغْفِرْ لِي وَلِوَالِدَيَّ وَلِلْمُؤْمِنِينَ وَالْمُؤْمِنَاتِ وَالْمُسْلِمِينَ وَالْمُسْلِمَاتِ الأَحْيَاءِ مِنْهُمْ وَالأَمْوَاتِ`,
+ en:`O Allah, forgive me, my parents, and the believing and Muslim men and women, the living among them and the dead.`},
+{tr:`Allāhumma innī ẓalamtu nafsī ẓulman kathīran, wa lā yaghfiru adh-dhunūba illā anta, faghfir lī maghfiratan min ʿindika warḥamnī, innaka antal-Ghafūrur-Raḥīm`,
+ ar:`اللَّهُمَّ إِنِّي ظَلَمْتُ نَفْسِي ظُلْمًا كَثِيرًا، وَلَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ، فَاغْفِرْ لِي مَغْفِرَةً مِنْ عِنْدِكَ وَارْحَمْنِي، إِنَّكَ أَنْتَ الْغَفُورُ الرَّحِيمُ`,
+ en:`O Allah, I have greatly wronged myself, and none forgives sins but You. Forgive me and have mercy on me; You are the Most Forgiving, Most Merciful.`},
+{tr:`Allāhumma aʿinnī ʿalā dhikrika wa shukrika wa ḥusni ʿibādatik`,
+ ar:`اللَّهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ`,
+ en:`O Allah, help me to remember You, thank You, and worship You in the best manner.`},
+{tr:`Allāhumma aḥrusnā biʿaynikal-latī lā tanām`,
+ ar:`اللَّهُمَّ احْرُسْنَا بِعَيْنِكَ الَّتِي لَا تَنَامُ`,
+ en:`O Allah, guard us with Your Eye that never sleeps.`},
+{tr:`Allāhumma mālikal-mulki tu'til-mulka man tashā'u wa tanziʿul-mulka mimman tashā'u, wa tuʿizzu man tashā'u wa tudhillu man tashā'u, biyadikal-khayr, innaka ʿalā kulli shay'in qadīr`,
+ ar:`اللَّهُمَّ مَالِكَ الْمُلْكِ تُؤْتِي الْمُلْكَ مَن تَشَاءُ وَتَنزِعُ الْمُلْكَ مِمَّن تَشَاءُ وَتُعِزُّ مَن تَشَاءُ وَتُذِلُّ مَن تَشَاءُ بِيَدِكَ الْخَيْرُ إِنَّكَ عَلَىٰ كُلِّ شَيْءٍ قَدِيرٌ`,
+ en:`O Allah, Owner of sovereignty, You give and withdraw power as You will; in Your hand is all good. You have power over all things.`},
+{tr:`Allāhummakfinī biḥalālika ʿan ḥarāmika wa aghninī bifaḍlika ʿamman siwāk`,
+ ar:`اللَّهُمَّ اكْفِنِي بِحَلَالِكَ عَنْ حَرَامِكَ وَأَغْنِنِي بِفَضْلِكَ عَمَّنْ سِوَاكَ`,
+ en:`O Allah, suffice me with the lawful instead of the unlawful, and enrich me by Your grace so I need none besides You.`},
+{tr:`Rabbi innī limā anzalta ilayya min khayrin faqīr`,
+ ar:`رَبِّ إِنِّي لِمَا أَنزَلْتَ إِلَيَّ مِنْ خَيْرٍ فَقِيرٌ`,
+ en:`My Lord, I am in need of whatever good You send down to me.`},
+{tr:`Rabbanā hab lanā min azwājinā wa dhurriyyātinā qurrata aʿyun wajʿalnā lil-muttaqīna imāmā`,
+ ar:`رَبَّنَا هَبْ لَنَا مِنْ أَزْوَاجِنَا وَذُرِّيَّاتِنَا قُرَّةَ أَعْيُنٍ وَاجْعَلْنَا لِلْمُتَّقِينَ إِمَامًا`,
+ en:`Our Lord, grant us comfort in our spouses and children, and make us leaders for the righteous.`},
+{tr:`Allāhumma innā nas'alukal-khayra kullahu ʿājilahu wa ājilahu mā ʿalimnā minhu wa mā lam naʿlam, wa naʿūdhu bika minash-sharri kullih`,
+ ar:`اللَّهُمَّ إِنَّا نَسْأَلُكَ الْخَيْرَ كُلَّهُ عَاجِلَهُ وَآجِلَهُ مَا عَلِمْنَا مِنْهُ وَمَا لَمْ نَعْلَمْ وَنَعُوذُ بِكَ مِنَ الشَّرِّ كُلِّهِ`,
+ en:`O Allah, we ask You for all good, now and later, known and unknown; and seek refuge from all evil.`},
+{tr:`Allāhumma innī aʿūdhu bika min jahdil-balā' wa darkish-shaqā' wa sū'il-qaḍā' wa shamātatil-aʿdā'`,
+ ar:`اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ جَهْدِ الْبَلَاءِ وَدَرَكِ الشَّقَاءِ وَسُوءِ الْقَضَاءِ وَشَمَاتَةِ الْأَعْدَاءِ`,
+ en:`O Allah, I seek refuge from severe trials, misery, an evil fate, and the gloating of enemies.`},
+{tr:`Yā Mujībal-muḍṭarri wa yā Kāshifas-sū', innī muḍṭarrun fa-ajibnī`,
+ ar:`يَا مُجِيبَ الْمُضْطَرِّ وَيَا كَاشِفَ السُّوءِ إِنِّي مُضْطَرٌّ فَأَجِبْنِي`,
+ en:`O Responder to the distressed, Remover of harm — I am in distress, so answer me.`},
+{tr:`Allāhumma innī as'aluka wa atawajjahu ilayka binabiyyika Muḥammadin Nabiyyir-raḥmah`,
+ ar:`اللَّهُمَّ إِنِّي أَسْأَلُكَ وَأَتَوَجَّهُ إِلَيْكَ بِنَبِيِّكَ مُحَمَّدٍ نَبِيِّ الرَّحْمَةِ`,
+ en:`O Allah, I ask You and turn to You through Your Prophet Muhammad, the Prophet of mercy.`},
+{tr:`Rabbanā ātinā min ladunka raḥmatan wa hayyi' lanā min amrinā rashadā`,
+ ar:`رَبَّنَا آتِنَا مِن لَّدُنكَ رَحْمَةً وَهَيِّئْ لَنَا مِنْ أَمْرِنَا رَشَدًا`,
+ en:`Our Lord, grant us mercy from Yourself and guide us rightly in our affairs.`},
+{tr:`Allāhumma innī aʿūdhu bika min zawāli niʿmatika wa taḥawwuli ʿāfiyatika wa fujā'ati niqmatika wa jamīʿi sakhaṭik`,
+ ar:`اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ زَوَالِ نِعْمَتِكَ وَتَحَوُّلِ عَافِيَتِكَ وَفُجَاءَةِ نِقْمَتِكَ وَجَمِيعِ سَخَطِكَ`,
+ en:`O Allah, I seek refuge from the loss of Your blessings, the change of Your protection, and all Your displeasure.`},
+{tr:`Allāhumma innī as'aluka biʿilmikal-ghayb wa qudratika ʿalal-khalq, aḥyinī mā ʿalimtal-ḥayāta khayran lī wa tawaffanī idhā ʿalimtal-wafāta khayran lī`,
+ ar:`اللَّهُمَّ إِنِّي أَسْأَلُكَ بِعِلْمِكَ الْغَيْبَ وَقُدْرَتِكَ عَلَى الْخَلْقِ أَحْيِنِي مَا عَلِمْتَ الْحَيَاةَ خَيْرًا لِي وَتَوَفَّنِي إِذَا عَلِمْتَ الْوَفَاةَ خَيْرًا لِي`,
+ en:`O Allah, by Your knowledge and power, keep me alive if life is better for me, and take me if death is better for me.`},
+{tr:`Allāhumma innī as'alukal-ʿāfiyata fid-dunyā wal-ākhirah`,
+ ar:`اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَافِيَةَ فِي الدُّنْيَا وَالْآخِرَةِ`,
+ en:`O Allah, I ask You for wellbeing in this life and the next.`},
+{tr:`Allāhumma fāliqal-ḥabbi wan-nawā wa jāʿilal-layli sakanan wash-shamsa wal-qamara ḥusbānan, iqḍi ʿannid-dayna wa aghninī minal-faqr`,
+ ar:`اللَّهُمَّ فَالِقَ الْحَبِّ وَالنَّوَى وَجَاعِلَ اللَّيْلِ سَكَنًا وَالشَّمْسَ وَالْقَمَرَ حُسْبَانًا اقْضِ عَنِّي الدَّيْنَ وَأَغْنِنِي مِنَ الْفَقْرِ`,
+ en:`O Splitter of seed and stone, Maker of night for rest — settle my debts and free me from poverty.`},
+{tr:`Allāhumma innī atawassalu ilayka bi-īmānī bika wa binabiyyika Muḥammad an tuyassira lī hādhal-amr`,
+ ar:`اللَّهُمَّ إِنِّي أَتَوَسَّلُ إِلَيْكَ بِإِيمَانِي بِكَ وَبِنَبِيِّكَ مُحَمَّدٍ أَنْ تُيَسِّرَ لِي هَذَا الْأَمْرَ`,
+ en:`O Allah, through my faith in You and Your Prophet, make this matter easy for me.`},
+{tr:`Allāhumma in kāna rizqī fis-samā'i fa anzilhu, wa in kāna fil-arḍ fa akhrijhu, wa in kāna baʿīdan faqarribhu, wa in kāna qarīban fayassirhu, wa in kāna qalīlan fakaththirhu, wa in kāna kathīran fabārik lī fīh`,
+ ar:`اللَّهُمَّ إِنْ كَانَ رِزْقِي فِي السَّمَاءِ فَأَنْزِلْهُ وَإِنْ كَانَ فِي الْأَرْضِ فَأَخْرِجْهُ وَإِنْ كَانَ بَعِيدًا فَقَرِّبْهُ وَإِنْ كَانَ قَرِيبًا فَيَسِّرْهُ وَإِنْ كَانَ قَلِيلًا فَكَثِّرْهُ وَإِنْ كَانَ كَثِيرًا فَبَارِكْ لِي فِيهِ`,
+ en:`O Allah, wherever my provision is — bring it, ease it, increase it, and bless it for me.`},
+{tr:`Allāhumma innaka khalaqta nafsī wa anta tatawaffāhā, laka mamātuhā wa maḥyāhā, in aḥyaytahā faḥfaẓhā wa in amattahā faghfir lahā, Allāhumma innī as'alukal-ʿāfiyah`,
+ ar:`اللَّهُمَّ إِنَّكَ خَلَقْتَ نَفْسِي وَأَنْتَ تَتَوَفَّاهَا لَكَ مَمَاتُهَا وَمَحْيَاهَا إِنْ أَحْيَيْتَهَا فَاحْفَظْهَا وَإِنْ أَمَتَّهَا فَاغْفِرْ لَهَا اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَافِيَةَ`,
+ en:`O Allah, You created my soul and take it back — if You keep it, protect it; if You take it, forgive it. I ask You for wellbeing.`},
+{tr:`Allāhumma zayyinnā bizīnatil-īmān wajʿalnā hudātan muhtadīn`,
+ ar:`اللَّهُمَّ زَيِّنَّا بِزِينَةِ الْإِيمَانِ وَاجْعَلْنَا هُدَاةً مُهْتَدِينَ`,
+ en:`O Allah, adorn us with the beauty of faith and make us guides who are rightly guided.`},
+{tr:`Allāhumma innī fawwaḍtu amrī ilayka fabashshirnī bimā antaẓiruhu fa anta khayrul-mubashshirīn`,
+ ar:`اللَّهُمَّ إِنِّي فَوَّضْتُ أَمْرِي إِلَيْكَ فَبَشِّرْنِي بِمَا أَنْتَظِرُهُ فَأَنْتَ خَيْرُ الْمُبَشِّرِينَ`,
+ en:`O Allah, I have entrusted my affair to You — give me the good news I await, for You are the best of glad-tidings-bearers.`},
+{tr:`Allāhumma innī as'alukal-hudā wat-tuqā wal-ʿafāfa wal-ghinā`,
+ ar:`اللَّهُمَّ إِنِّي أَسْأَلُكَ الْهُدَى وَالتُّقَى وَالْعَفَافَ وَالْغِنَى`,
+ en:`O Allah, I ask You for guidance, piety, chastity, and sufficiency.`},
+{tr:`Allāhumma innī as'aluka īmānan kāmilan wa yaqīnan ṣādiqan wa rizqan wāsiʿan wa qalban khāshiʿan wa lisānan dhākiran wa tawbatan naṣūḥan qablal-mawt`,
+ ar:`اللَّهُمَّ إِنِّي أَسْأَلُكَ إِيمَانًا كَامِلًا وَيَقِينًا صَادِقًا وَرِزْقًا وَاسِعًا وَقَلْبًا خَاشِعًا وَلِسَانًا ذَاكِرًا وَتَوْبَةً نَصُوحًا قَبْلَ الْمَوْتِ`,
+ en:`O Allah, I ask You for complete faith, true certainty, ample provision, a humble heart, a remembering tongue, and sincere repentance before death.`},
+{tr:`Allāhumma innī as'aluka nafsan muṭma'innah, tu'minu biliqā'ika wa tarḍā biqaḍā'ika wa taqnaʿu biʿaṭā'ik`,
+ ar:`اللَّهُمَّ إِنِّي أَسْأَلُكَ نَفْسًا مُطْمَئِنَّةً تُؤْمِنُ بِلِقَائِكَ وَتَرْضَى بِقَضَائِكَ وَتَقْنَعُ بِعَطَائِكَ`,
+ en:`O Allah, I ask You for a tranquil soul — one that believes in meeting You, accepts Your decree, and is content with Your gift.`},
+{tr:`Rabbish-raḥ lī ṣadrī wa yassir lī amrī waḥlul ʿuqdatan min lisānī yafqahū qawlī`,
+ ar:`رَبِّ اشْرَحْ لِي صَدْرِي وَيَسِّرْ لِي أَمْرِي وَاحْلُلْ عُقْدَةً مِنْ لِسَانِي يَفْقَهُوا قَوْلِي`,
+ en:`My Lord, expand my chest, ease my task, and untie my tongue so they understand me.`},
+{tr:`Yā Waliyya niʿmatī wa malādhī ʿinda kurbatī, ijʿal mā akhāfuhu bardan wa salāman ʿalayya kamā jaʿaltan-nāra bardan wa salāman ʿalā Ibrāhīm`,
+ ar:`يَا وَلِيَّ نِعْمَتِي وَمَلَاذِي عِنْدَ كُرْبَتِي اجْعَلْ مَا أَخَافُهُ بَرْدًا وَسَلَامًا عَلَيَّ كَمَا جَعَلْتَ النَّارَ بَرْدًا وَسَلَامًا عَلَى إِبْرَاهِيمَ`,
+ en:`O Guardian of my blessings, my refuge in distress — make what I fear coolness and peace for me, as You made the fire for Ibrahim.`},
+{tr:`Allāhumma innī as'aluka fiʿlal-khayrāt wa tarkal-munkarāt wa ḥubbal-masākīn`,
+ ar:`اللَّهُمَّ إِنِّي أَسْأَلُكَ فِعْلَ الْخَيْرَاتِ وَتَرْكَ الْمُنْكَرَاتِ وَحُبَّ الْمَسَاكِينِ`,
+ en:`O Allah, I ask You for doing good, leaving evil, and loving the poor.`},
+{tr:`Allāhumma innī as'aluka min faḍlika wa raḥmatika fa innahu lā yamlikuhā illā anta`,
+ ar:`اللَّهُمَّ إِنِّي أَسْأَلُكَ مِنْ فَضْلِكَ وَرَحْمَتِكَ فَإِنَّهُ لَا يَمْلِكُهَا إِلَّا أَنْتَ`,
+ en:`O Allah, I ask You for Your favour and mercy, for none possesses them but You.`},
+{tr:`Rabbi awziʿnī an ashkura niʿmatakal-latī anʿamta ʿalayya wa ʿalā wālidayya wa an aʿmala ṣāliḥan tarḍāh`,
+ ar:`رَبِّ أَوْزِعْنِي أَنْ أَشْكُرَ نِعْمَتَكَ الَّتِي أَنْعَمْتَ عَلَيَّ وَعَلَىٰ وَالِدَيَّ وَأَنْ أَعْمَلَ صَالِحًا تَرْضَاهُ`,
+ en:`My Lord, inspire me to be grateful for Your blessing on me and my parents, and to do good that pleases You.`},
+{tr:`Allāhumma innā nas'aluka ḥubbaka wa ḥubba man yuḥibbuka wa ḥubba ʿamalin yuqarribunā ilā ḥubbik`,
+ ar:`اللَّهُمَّ إِنَّا نَسْأَلُكَ حُبَّكَ وَحُبَّ مَنْ يُحِبُّكَ وَحُبَّ عَمَلٍ يُقَرِّبُنَا إِلَى حُبِّكَ`,
+ en:`O Allah, we ask You for Your love, the love of those who love You, and the love of deeds that draw us nearer to Your love.`}
+];
+
+/* counted dhikr (targets) */
+const COUNTERS=[
+ {id:"astgh",tr:`Astaghfirullāha wa atūbu ilayh`,ar:`أَسْتَغْفِرُ اللَّهَ وَأَتُوبُ إِلَيْهِ`,t:2000},
+ {id:"salawat",tr:`Allāhumma ṣalli wa sallim ʿalā nabiyyinā Muḥammad`,ar:`اللَّهُمَّ صَلِّ وَسَلِّمْ عَلَى نَبِيِّنَا مُحَمَّد`,t:1000},
+ {id:"tahlil",tr:`Lā ilāha illallāh`,ar:`لَا إِلَهَ إِلَّا اللَّهُ`,t:100},
+ {id:"yunus",tr:`Lā ilāha illā Anta subḥānaka innī kuntu minaẓ-ẓālimīn`,ar:`لَا إِلَهَ إِلَّا أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ`,t:100},
+ {id:"hasbun",tr:`Ḥasbunallāhu wa niʿmal-wakīl`,ar:`حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ`,t:100},
+ {id:"hawla",tr:`Lā ḥawla wa lā quwwata illā billāhil-ʿAliyyil-ʿAẓīm`,ar:`لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ الْعَلِيِّ الْعَظِيمِ`,t:100},
+ {id:"faqir",tr:`Rabbi innī limā anzalta ilayya min khayrin faqīr`,ar:`رَبِّ إِنِّي لِمَا أَنْزَلْتَ إِلَيَّ مِنْ خَيْرٍ فَقِيرٌ`,t:100},
+ {id:"afiyah",tr:`Allāhumma innī as'alukal-ʿāfiyah`,ar:`اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَافِيَةَ`,t:7},
+ {id:"jannah",tr:`Allāhumma ajirnī minan-nār, Allāhumma innī as'alukal-jannah`,ar:`اللَّهُمَّ أَجِرْنِي مِنَ النَّارِ، اللَّهُمَّ إِنِّي أَسْأَلُكَ الْجَنَّةَ`,t:7},
+ {id:"ikhlas",tr:`Sūratul-Ikhlāṣ (Qul Huwallāhu Aḥad)`,ar:`قُلْ هُوَ اللَّهُ أَحَدٌ`,t:10},
+ {id:"sub",tr:`SubḥānAllāh`,ar:`سُبْحَانَ اللَّهِ`,t:33},
+ {id:"ham",tr:`Alḥamdulillāh`,ar:`الْحَمْدُ لِلَّهِ`,t:33},
+ {id:"akb",tr:`Allāhu Akbar`,ar:`اللَّهُ أَكْبَرُ`,t:34}
+];
+
+/* affirmations as du'a — indices into DUAS that read as comfort/affirmation */
+const AFFIRM=[1,2,14,23,24,25,21,30,5,29];
+
+const SALAH=[["fajr","الفجر"],["dhuhr","الظهر"],["asr","العصر"],["maghrib","المغرب"],["isha","العشاء"]];
+
+const SOLO=["Go for a walk","Try a new recipe","Have a picnic for one","At-home spa night","Read in a quiet café",
+"Watch the sunrise","Watch the sunset","Visit a garden or park","Try a new craft","Rearrange a space at home",
+"Bake something sweet","Visit a bookshop","Take yourself out for tea","Pray in a masjid you've never been to",
+"Watch a documentary","Stargaze","Journal somewhere new","Take photos of your city"];
+
+/* ---------- views ---------- */
+let view="home", dhikrTab="counted", subView=null;
+
+function el(h){const t=document.createElement("template");t.innerHTML=h.trim();return t.content.firstChild;}
+function render(){
+  const a=document.getElementById("app"); a.innerHTML="";
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.v===(["home","salah","dhikr","fasting"].includes(view)?view:"more")));
+  ({home:vHome,salah:vSalah,dhikr:vDhikr,fasting:vFasting,more:vMore,habits:vHabits,reading:vReading,journal:vJournal,becoming:vBecoming,solo:vSolo}[view]||vHome)(a);
+  window.scrollTo(0,0);
+}
+
+/* HOME */
+function vHome(a){
+  const today=new Date();
+  const ai=AFFIRM[(S._aff!=null?S._aff:dayOfYear())%AFFIRM.length];
+  const d=DUAS[ai];
+  a.appendChild(el(`
+    <div class="hero">
+      <div class="beam"></div>
+      <svg class="lighthouse" viewBox="0 0 40 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14 24h12l3 34H11z" fill="#8B6F5A"/>
+        <rect x="13" y="14" width="14" height="11" rx="1" fill="#3E2F25" stroke="#D9A14B" stroke-width="1.4"/>
+        <path d="M20 14l-7-6h14z" fill="#D9A14B"/>
+        <circle cx="20" cy="19" r="2.4" fill="#D9A14B"/>
+        <path d="M13 19H2M27 19h11" stroke="#D9A14B" stroke-width="1" opacity=".5"/>
+        <path d="M11 58h18" stroke="#D9A14B" stroke-width="1.4"/>
+      </svg>
+      <p class="hello">As-salāmu ʿalaykum, Manar</p>
+      <h1 class="serif">Guiding <em>Light</em></h1>
+      <p class="meaning serif">منارة — the beacon, the place the light comes from</p>
+      <p class="dates"><b>${gregLong(today)}</b><br>${hijri(today)}</p>
+    </div>`));
+
+  const af=el(`<div class="card card-soft" id="affirm">
+      <p class="label">Today's du'ā</p>
+      <p class="ar">${d.ar}</p>
+      <p class="tr serif">${d.tr}</p>
+      <p class="en">${d.en}</p>
+      <button class="shuffle">Another ✦</button>
+    </div>`);
+  af.querySelector(".shuffle").onclick=()=>{S._aff=((S._aff!=null?S._aff:dayOfYear())+1)%AFFIRM.length;save();render();};
+  a.appendChild(af);
+
+  // quick salah
+  const k=tkey(); const s=S.salah[k]||{};
+  const q=el(`<div class="card"><p class="label">Today's salāh</p><div class="qsalah"></div></div>`);
+  const row=q.querySelector(".qsalah");
+  SALAH.forEach(([p,])=>{
+    const st=s[p]||0;
+    row.appendChild(el(`<div class="p"><div class="dotq ${st==1?'on':''}${st==2?'ot':''}"></div>${p[0].toUpperCase()+p.slice(1)}</div>`));
+  });
+  q.onclick=()=>{view="salah";render();};
+  a.appendChild(q);
+
+  a.appendChild(el(`<p class="note">Open whichever part calls to you today. Nothing here is a debt — it's a light to walk toward, at your own pace. <b>And remember who you're doing this for.</b></p>`));
+}
+function dayOfYear(){const n=new Date();const s=new Date(n.getFullYear(),0,0);return Math.floor((n-s)/864e5);}
+
+/* SALAH */
+function vSalah(a){
+  const k=tkey(); S.salah[k]=S.salah[k]||{}; const s=S.salah[k];
+  const str=streakDays(salahComplete);
+  a.appendChild(el(`<header><p class="eyebrow">On time, with presence</p><h1 class="h-title serif">Ṣalāh</h1></header>`));
+  a.appendChild(el(`<div class="card"><p class="label">Gentle streak</p>
+    <div class="streak"><span class="num">${str}</span><span class="sub">day${str==1?'':'s'} keeping all five. ${str==0?'Begin today — even one prayer is a return.':'Quietly beautiful, masha\u2019Allah.'}</span></div></div>`));
+  const c=el(`<div class="card"></div>`);
+  SALAH.forEach(([p,ar])=>{
+    const st=s[p]||0;
+    const r=el(`<div class="salah-row"><div><span class="n serif">${p[0].toUpperCase()+p.slice(1)}</span><span class="ar-s">${ar}</span></div>
+      <button class="sdot ${st==1?'on':''}${st==2?'ot':''}" aria-label="${p}"></button></div>`);
+    r.querySelector(".sdot").onclick=()=>{s[p]=((s[p]||0)+1)%3;save();render();};
+    c.appendChild(r);
+  });
+  a.appendChild(c);
+  a.appendChild(el(`<div class="legend"><span><i style="border:2px solid var(--mocha)"></i>Tap once — prayed</span>
+    <span><i style="background:var(--mocha)"></i>Prayed</span><span><i style="background:var(--gold)"></i>On time</span></div>`));
+}
+
+/* DHIKR */
+function vDhikr(a){
+  const k=tkey();
+  a.appendChild(el(`<header><p class="eyebrow">The garden of remembrance</p><h1 class="h-title serif">Dhikr</h1></header>`));
+  const tabs=el(`<div class="tabs">
+    <button class="tab ${dhikrTab=='counted'?'active':''}" data-t="counted">Counted</button>
+    <button class="tab ${dhikrTab=='duas'?'active':''}" data-t="duas">Daily du'ās · ${DUAS.length}</button></div>`);
+  tabs.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{dhikrTab=b.dataset.t;render();});
+  a.appendChild(tabs);
+
+  if(dhikrTab=="counted"){
+    S.dhikrCount[k]=S.dhikrCount[k]||{};
+    COUNTERS.forEach(c=>{
+      const n=S.dhikrCount[k][c.id]||0; const pct=Math.min(100,Math.round(n/c.t*100)); const done=n>=c.t;
+      const card=el(`<div class="counter ${done?'done':''}">
+        <div class="ct serif">${c.tr}</div><div class="car">${c.ar}</div>
+        <div class="cbar"><i style="width:${pct}%"></i></div>
+        <div class="crow"><button class="tapbtn">${done?'Complete ✦':'Tap to count'}</button>
+          <span class="cnum"><b>${n}</b> / ${c.t}</span></div>
+        <div style="margin-top:8px;text-align:right"><button class="mini">↺ reset</button></div></div>`);
+      card.querySelector(".tapbtn").onclick=()=>{S.dhikrCount[k][c.id]=(S.dhikrCount[k][c.id]||0)+1;save();
+        // light update without full rerender for snappiness
+        render();};
+      card.querySelector(".mini").onclick=()=>{S.dhikrCount[k][c.id]=0;save();render();};
+      a.appendChild(card);
+    });
+    a.appendChild(el(`<p class="note">Counts reset gently each morning. If you only reach a little of the target, that little still rises. <b>Allah hears every single one.</b></p>`));
+  } else {
+    S.dhikrCheck[k]=S.dhikrCheck[k]||{};
+    const done=Object.keys(S.dhikrCheck[k]).filter(x=>S.dhikrCheck[k][x]).length;
+    a.appendChild(el(`<div class="card"><p class="label">Today</p><span class="sub">${done} of ${DUAS.length} du'ās marked. Read what your heart has room for.</span></div>`));
+    const c=el(`<div class="card"></div>`);
+    DUAS.forEach((d,i)=>{
+      const on=S.dhikrCheck[k][i];
+      const item=el(`<div class="dua">
+        <div class="dua-head"><button class="dcheck ${on?'on':''}"></button>
+          <div style="flex:1"><div class="dtr serif">${d.tr}</div>
+          <button class="dexp">Arabic & meaning ▾</button></div></div>
+        <div class="body"><div class="ar">${d.ar}</div><div class="en">${d.en}</div></div></div>`);
+      item.querySelector(".dcheck").onclick=()=>{S.dhikrCheck[k][i]=!S.dhikrCheck[k][i];save();render();};
+      const body=item.querySelector(".body");
+      item.querySelector(".dexp").onclick=(e)=>{body.classList.toggle("show");e.target.textContent=body.classList.contains("show")?"Hide ▴":"Arabic & meaning ▾";};
+      c.appendChild(item);
+    });
+    a.appendChild(c);
+  }
+}
+
+/* FASTING */
+function vFasting(a){
+  S._fm=S._fm||0; // month offset
+  const base=new Date(); base.setDate(1); base.setMonth(base.getMonth()+S._fm);
+  const y=base.getFullYear(), m=base.getMonth();
+  const monthName=new Intl.DateTimeFormat("en-GB",{month:"long",year:"numeric"}).format(base);
+  a.appendChild(el(`<header><p class="eyebrow">Following the sunnah days</p><h1 class="h-title serif">Fasting</h1></header>`));
+  const nav=el(`<div class="card" style="display:flex;align-items:center;justify-content:space-between">
+    <button class="mini" id="pm">‹</button><div style="text-align:center"><div class="serif" style="font-size:22px">${monthName}</div>
+    <div class="sub" id="hijriLbl">${hijri(base)}</div></div><button class="mini" id="nm">›</button></div>`);
+  nav.querySelector("#pm").onclick=()=>{S._fm--;render();};
+  nav.querySelector("#nm").onclick=()=>{S._fm++;render();};
+  a.appendChild(nav);
+
+  const cal=el(`<div class="card"><div class="cal" id="cal"></div></div>`);
+  const grid=cal.querySelector("#cal");
+  ["M","T","W","T","F","S","S"].forEach(d=>grid.appendChild(el(`<div class="dow">${d}</div>`)));
+  const first=new Date(y,m,1); const lead=(first.getDay()+6)%7;
+  for(let i=0;i<lead;i++) grid.appendChild(el(`<div class="day empty"></div>`));
+  const days=new Date(y,m+1,0).getDate();
+  const todayK=tkey();
+  for(let dd=1;dd<=days;dd++){
+    const date=new Date(y,m,dd); const k=tkey(date); const dow=date.getDay();
+    const h=hijriDM(date);
+    let rec=false,sp="";
+    if(dow==1){rec=true;sp="Mon";} if(dow==4){rec=true;sp="Thu";}
+    if(h){ if(h.day>=13&&h.day<=15){rec=true;sp="White";}
+      if(h.mon==1&&(h.day==9||h.day==10)){rec=true;sp=h.day==10?"ʿĀshūrā":"Tāsūʿā";}
+      if(h.mon==12&&h.day==9){rec=true;sp="ʿArafah";}
+      if(h.mon==10&&h.day>=2&&h.day<=7){rec=true;sp="Shawwāl";}
+    }
+    const fasted=S.fasting[k];
+    const cell=el(`<button class="day ${rec?'rec':''} ${fasted?'fasted':''} ${k==todayK?'today':''}">
+      ${h?`<span class="hd">${h.day}</span>`:''}${dd}${sp?`<span class="sp">${sp}</span>`:''}</button>`);
+    cell.onclick=()=>{ if(S.fasting[k]) delete S.fasting[k]; else S.fasting[k]=true; save();render(); };
+    grid.appendChild(cell);
+  }
+  a.appendChild(cal);
+  a.appendChild(el(`<div class="legend"><span><i style="border:1px solid var(--gold)"></i>Recommended day</span><span><i style="background:var(--gold)"></i>You fasted</span></div>`));
+  a.appendChild(el(`<p class="note">Gold-edged days are the sunnah fasts — Mondays & Thursdays, the white days (13–15), and the special days. Tap any day you fasted. <b>Small, regular fasts are the most beloved.</b></p>`));
+}
+
+/* MORE menu */
+function vMore(a){
+  a.appendChild(el(`<header><p class="eyebrow">Becoming, gently</p><h1 class="h-title serif">More</h1></header>`));
+  const tiles=[
+    ["habits","✿","Habits","Tiny daily anchors"],
+    ["reading","❦","Reading","Self-help, one page at a time"],
+    ["journal","✎","Journal","Your Islamic goals & reflections"],
+    ["becoming","☀","Becoming Her","Who you're growing into, inshaAllah"],
+    ["solo","❀","Solo Dates","Dates with yourself, captured"]
+  ];
+  const g=el(`<div class="grid"></div>`);
+  tiles.forEach(([v,ic,n,d])=>{const t=el(`<button class="tile"><span class="t-ic">${ic}</span><span class="t-n serif">${n}</span><span class="t-d">${d}</span></button>`);
+    t.onclick=()=>{view=v;render();};g.appendChild(t);});
+  a.appendChild(g);
+}
+function backHeader(a,title,eyebrow){
+  const h=el(`<header><button class="h-back">‹ More</button><p class="eyebrow">${eyebrow}</p><h1 class="h-title serif">${title}</h1></header>`);
+  h.querySelector(".h-back").onclick=()=>{view="more";render();};
+  a.appendChild(h);
+}
+
+/* HABITS */
+function vHabits(a){
+  backHeader(a,"Habits","Make it small, make it stick");
+  const k=tkey(); S.habitLog[k]=S.habitLog[k]||{};
+  S.habits.forEach(h=>{
+    const on=S.habitLog[k][h.id];
+    const str=streakDays(d=>!!(S.habitLog[d]&&S.habitLog[d][h.id]));
+    const it=el(`<div class="item"><div class="hbtop">
+      <div style="flex:1"><div class="hn serif">${h.name}</div>
+      <div class="meta">${h.identity||""}</div>
+      <div class="meta" style="margin-top:4px">🔥 <b>${str}</b> day streak</div></div>
+      <button class="hcheck ${on?'on':''}"></button></div>
+      ${h.two?`<div class="meta" style="margin-top:10px;border-top:1px solid var(--line);padding-top:9px"><b>2-min start:</b> ${h.two}</div>`:''}
+      ${h.stack?`<div class="meta" style="margin-top:4px"><b>Stack:</b> ${h.stack}</div>`:''}
+      <button class="del" style="margin-top:6px">remove</button></div>`);
+    it.querySelector(".hcheck").onclick=()=>{S.habitLog[k][h.id]=!S.habitLog[k][h.id];save();render();};
+    it.querySelector(".del").onclick=()=>{if(confirm("Remove this habit?")){S.habits=S.habits.filter(x=>x.id!=h.id);save();render();}};
+    a.appendChild(it);
+  });
+  const add=el(`<button class="addbtn">＋ Add a habit</button>`);
+  add.onclick=()=>showHabitForm(a);
+  a.appendChild(add);
+  a.appendChild(el(`<p class="note">From Atomic Habits: shrink it till it's almost too easy (the 2-minute rule), attach it to something you already do (stacking), and let it shape who you are — not "I want to read," but <b>"I'm someone who reads."</b></p>`));
+}
+function showHabitForm(a){
+  const f=el(`<div class="card">
+    <label class="fld">Habit name</label><input id="hn" placeholder="e.g. Read Qur'an after Fajr">
+    <label class="fld">I'm someone who…</label><input id="hi" placeholder="cares for her deen">
+    <label class="fld">2-minute version</label><input id="ht" placeholder="Open the Qur'an app">
+    <label class="fld">Habit stack (after I…, I will…)</label><input id="hs" placeholder="After I pray Fajr, I will read one ayah">
+    <button class="primary">Save habit</button><button class="ghost">Cancel</button></div>`);
+  f.querySelector(".primary").onclick=()=>{
+    const n=f.querySelector("#hn").value.trim(); if(!n)return;
+    S.habits.push({id:"h"+Date.now(),name:n,identity:f.querySelector("#hi").value.trim(),two:f.querySelector("#ht").value.trim(),stack:f.querySelector("#hs").value.trim()});
+    save();render();
+  };
+  f.querySelector(".ghost").onclick=()=>render();
+  a.appendChild(f);
+}
+
+/* READING */
+function vReading(a){
+  backHeader(a,"Reading","Grow your mind, one page");
+  S.books.forEach(b=>{
+    const pct=b.total?Math.min(100,Math.round(b.current/b.total*100)):0;
+    const it=el(`<div class="item"><div class="hn serif">${b.title}</div><div class="meta">${b.author||""}</div>
+      <div class="progress"><i style="width:${pct}%"></i></div>
+      <div class="meta"><b>${b.current}</b> / ${b.total||"?"} pages · ${pct}%</div>
+      <label class="fld">Current page</label><input type="number" value="${b.current}" min="0">
+      <label class="fld">Notes / what struck you</label><textarea placeholder="A line worth remembering…">${b.notes||""}</textarea>
+      <button class="del">remove book</button></div>`);
+    const inp=it.querySelector("input"), ta=it.querySelector("textarea");
+    inp.onchange=()=>{b.current=+inp.value||0;save();render();};
+    ta.onchange=()=>{b.notes=ta.value;save();};
+    it.querySelector(".del").onclick=()=>{if(confirm("Remove this book?")){S.books=S.books.filter(x=>x.id!=b.id);save();render();}};
+    a.appendChild(it);
+  });
+  const add=el(`<button class="addbtn">＋ Add a book</button>`);
+  add.onclick=()=>{const f=el(`<div class="card"><label class="fld">Title</label><input id="bt">
+    <label class="fld">Author</label><input id="ba"><label class="fld">Total pages</label><input id="bp" type="number">
+    <button class="primary">Add</button><button class="ghost">Cancel</button></div>`);
+    f.querySelector(".primary").onclick=()=>{const t=f.querySelector("#bt").value.trim();if(!t)return;
+      S.books.push({id:"b"+Date.now(),title:t,author:f.querySelector("#ba").value.trim(),total:+f.querySelector("#bp").value||0,current:0,notes:""});save();render();};
+    f.querySelector(".ghost").onclick=()=>render(); a.appendChild(f);};
+  a.appendChild(add);
+}
+
+/* JOURNAL */
+const JPROMPTS=["What did I do for my deen today?","What am I grateful to Allah for right now?","One goal for this week, inshaAllah","Where did I feel closest to Allah lately?","What do I want to leave behind?","A du'ā on my heart today"];
+function vJournal(a){
+  backHeader(a,"Journal","Your goals & reflections");
+  const prompt=JPROMPTS[dayOfYear()%JPROMPTS.length];
+  const f=el(`<div class="card card-soft"><p class="label">Prompt for today</p>
+    <p class="serif" style="font-size:20px;margin:2px 0 10px">${prompt}</p>
+    <textarea id="jt" placeholder="Write freely…"></textarea><button class="primary">Save entry</button></div>`);
+  f.querySelector(".primary").onclick=()=>{const t=f.querySelector("#jt").value.trim();if(!t)return;
+    S.journal.unshift({id:Date.now(),date:tkey(),prompt,text:t});save();render();};
+  a.appendChild(f);
+  if(S.journal.length){const c=el(`<div class="card"><p class="label">Your entries</p></div>`);
+    S.journal.forEach(j=>{const e=el(`<div class="jentry"><div class="jd">${gregLong(new Date(j.date))} · ${j.prompt||""}</div>
+      <div class="jt">${j.text.replace(/</g,"&lt;")}</div><button class="del">delete</button></div>`);
+      e.querySelector(".del").onclick=()=>{if(confirm("Delete entry?")){S.journal=S.journal.filter(x=>x.id!=j.id);save();render();}};
+      c.appendChild(e);});
+    a.appendChild(c);}
+}
+
+/* BECOMING */
+const VIS=[["spiritual","Spiritual","Closeness to Allah, salah, Qur'an…"],
+["character","Character & Heart","The akhlaq I want to be known for…"],
+["knowledge","Knowledge","What I want to learn — deen & dunya…"],
+["health","Health & Body","Caring for my amanah — movement, rest, nourishment…"],
+["provision","Provision & Work","Halal rizq, the work I'm building…"],
+["leaving","Leaving Behind","Habits & thoughts I'm letting go of…"],
+["becoming","Who I'm Becoming","The woman I'm growing into, inshaAllah…"]];
+function vBecoming(a){
+  backHeader(a,"Becoming Her","A vision, held lightly");
+  a.appendChild(el(`<p class="note" style="margin-top:0">Not a checklist — a quiet picture of who you're walking toward. It saves as you write.</p>`));
+  const c=el(`<div class="card vis"></div>`);
+  VIS.forEach(([k,n,ph])=>{
+    const ta=el(`<div><label class="fld">${n}</label><textarea placeholder="${ph}">${S.vision[k]||""}</textarea></div>`);
+    ta.querySelector("textarea").onchange=e=>{S.vision[k]=e.target.value;save();};
+    c.appendChild(ta);
+  });
+  a.appendChild(c);
+}
+
+/* SOLO DATES */
+function resizeImg(file){return new Promise((res,rej)=>{const r=new FileReader();
+  r.onload=()=>{const img=new Image();img.onload=()=>{const max=720;let{width:w,height:h}=img;
+    if(w>h&&w>max){h=h*max/w;w=max;}else if(h>max){w=w*max/h;h=max;}
+    const cv=document.createElement("canvas");cv.width=w;cv.height=h;cv.getContext("2d").drawImage(img,0,0,w,h);
+    res(cv.toDataURL("image/jpeg",0.6));};img.onerror=rej;img.src=r.result;};
+  r.onerror=rej;r.readAsDataURL(file);});}
+function vSolo(a){
+  backHeader(a,"Solo Dates","Time, just for you");
+  const all=[...SOLO.map((t,i)=>({id:"s"+i,title:t})),...S.soloCustom];
+  const g=el(`<div class="solo"></div>`);
+  all.forEach(idea=>{
+    const rec=S.soloDone[idea.id]; const done=rec&&rec.done;
+    const card=el(`<div class="scard ${done?'done':''}">
+      ${done?'<span class="badge">DONE ✦</span>':''}
+      ${rec&&rec.photo?`<img class="ph" src="${rec.photo}">`:`<div class="ph-empty">❀</div>`}
+      <div class="st"><div class="stn">${idea.title}</div></div>
+      <button class="sact">${done?'✓ Add / change photo':'Mark done + add photo'}</button>
+      <input type="file" accept="image/*" capture="environment" class="hidden"></div>`);
+    const fileIn=card.querySelector("input");
+    card.querySelector(".sact").onclick=()=>fileIn.click();
+    fileIn.onchange=async()=>{ if(!fileIn.files[0])return;
+      try{const b64=await resizeImg(fileIn.files[0]);
+        S.soloDone[idea.id]={done:true,photo:b64};save();render();}
+      catch(e){alert("Couldn't read that photo, try another.");} };
+    g.appendChild(card);
+  });
+  a.appendChild(g);
+  const add=el(`<button class="addbtn">＋ Add your own idea</button>`);
+  add.onclick=()=>{const t=prompt("Your solo date idea:");if(t&&t.trim()){S.soloCustom.push({id:"c"+Date.now(),title:t.trim()});save();render();}};
+  a.appendChild(add);
+  a.appendChild(el(`<p class="note">Pick one, go do it, and capture a photo of <b>you</b> in it. Slowly this becomes a gallery of your own becoming.</p>`));
+}
+
+/* nav */
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{view=b.dataset.v;render();});
+load(); render();
+</script>
+</body>
+</html>
