@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Guiding Light</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#2C3A28">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Guiding Light">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="icon" type="image/png" href="./icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
@@ -19,7 +27,8 @@ body{
   background:var(--bg); color:var(--cream);
   font-family:ui-sans-serif,-apple-system,"Segoe UI",Roboto,sans-serif;
   line-height:1.5; -webkit-font-smoothing:antialiased;
-  padding-bottom:84px;
+  padding-bottom:84px; padding-top:env(safe-area-inset-top);
+  overscroll-behavior:none;
 }
 .serif{font-family:"Cormorant Garamond",Georgia,serif}
 .ar{font-family:"Amiri",serif;direction:rtl;line-height:1.9}
@@ -389,7 +398,7 @@ function el(h){const t=document.createElement("template");t.innerHTML=h.trim();r
 function render(){
   const a=document.getElementById("app"); a.innerHTML="";
   document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.v===(["home","salah","dhikr","fasting"].includes(view)?view:"more")));
-  ({home:vHome,salah:vSalah,dhikr:vDhikr,fasting:vFasting,more:vMore,nafl:vNafl,tahajjud:vTahajjud,backup:vBackup,quran:vQuran,dualist:vDualist,gratitude:vGratitude,names:vNames,habits:vHabits,reading:vReading,journal:vJournal,becoming:vBecoming,solo:vSolo}[view]||vHome)(a);
+  ({home:vHome,salah:vSalah,dhikr:vDhikr,fasting:vFasting,more:vMore,nafl:vNafl,tahajjud:vTahajjud,backup:vBackup,quran:vQuran,dualist:vDualist,gratitude:vGratitude,names:vNames,stats:vStats,theme:vTheme,habits:vHabits,reading:vReading,journal:vJournal,becoming:vBecoming,solo:vSolo}[view]||vHome)(a);
   window.scrollTo(0,0);
 }
 
@@ -402,12 +411,12 @@ function vHome(a){
     <div class="hero">
       <div class="beam"></div>
       <svg class="lighthouse" viewBox="0 0 40 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M14 24h12l3 34H11z" fill="#6F8E5F"/>
-        <rect x="13" y="14" width="14" height="11" rx="1" fill="#414F37" stroke="#B8D49B" stroke-width="1.4"/>
-        <path d="M20 14l-7-6h14z" fill="#B8D49B"/>
-        <circle cx="20" cy="19" r="2.4" fill="#B8D49B"/>
-        <path d="M13 19H2M27 19h11" stroke="#B8D49B" stroke-width="1" opacity=".5"/>
-        <path d="M11 58h18" stroke="#B8D49B" stroke-width="1.4"/>
+        <path d="M14 24h12l3 34H11z" fill="var(--mocha)"/>
+        <rect x="13" y="14" width="14" height="11" rx="1" fill="var(--panel2)" stroke="var(--gold)" stroke-width="1.4"/>
+        <path d="M20 14l-7-6h14z" fill="var(--gold)"/>
+        <circle cx="20" cy="19" r="2.4" fill="var(--gold)"/>
+        <path d="M13 19H2M27 19h11" stroke="var(--gold)" stroke-width="1" opacity=".5"/>
+        <path d="M11 58h18" stroke="var(--gold)" stroke-width="1.4"/>
       </svg>
       <p class="hello">As-salāmu ʿalaykum, Manar</p>
       <h1 class="serif">Guiding <em>Light</em></h1>
@@ -436,28 +445,87 @@ function vHome(a){
   q.onclick=()=>{view="salah";render();};
   a.appendChild(q);
 
+  // today summary
+  const salahDone=SALAH.filter(([p])=>(s[p]||0)>=1).length;
+  const dc=S.dhikrCount[k]||{}, dd=S.dhikrDone[k]||{};
+  const cDone=COUNTERS.filter(c=>(dc[c.id]||0)>=c.t||dd[c.id]).length;
+  const ad=S.adhkar[k]||{}; const adDone=(ad.morning?1:0)+(ad.evening?1:0);
+  const qd=S.quranLog[k]||{}; const qDone=["mulk","kursi","waqiah","kahf"].filter(x=>qd[x]).length;
+  const hl=S.habitLog[k]||{}; const hDone=S.habits.filter(hh=>hl[hh.id]).length;
+  const rows=[
+    ["Ṣalāh",salahDone,5,"salah"],
+    ["Counted dhikr",cDone,COUNTERS.length,"dhikr"],
+    ["Adhkār",adDone,2,"dhikr"],
+    ["Qur'ān today",qDone,4,"quran"],
+    ["Habits",hDone,S.habits.length,"habits"]
+  ];
+  const sum=el(`<div class="card"><p class="label">Today so far</p></div>`);
+  rows.forEach(([n,d,t,v])=>{
+    const pct=t?Math.round(d/t*100):0;
+    const r=el(`<div style="padding:9px 0;cursor:pointer">
+      <div style="display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:5px"><span>${n}</span><span style="color:var(--muted)"><b style="color:var(--cream)">${d}</b> / ${t}</span></div>
+      <div class="progress" style="margin:0"><i style="width:${pct}%"></i></div></div>`);
+    r.onclick=()=>{view=v;render();};
+    sum.appendChild(r);
+  });
+  a.appendChild(sum);
+
   a.appendChild(el(`<p class="note">Open whichever part calls to you today. Nothing here is a debt — it's a light to walk toward, at your own pace. <b>And remember who you're doing this for.</b></p>`));
 }
 function dayOfYear(){const n=new Date();const s=new Date(n.getFullYear(),0,0);return Math.floor((n-s)/864e5);}
 
 /* SALAH */
+let salahSel=null, salahMonth=0;
 function vSalah(a){
-  const k=tkey(); S.salah[k]=S.salah[k]||{}; const s=S.salah[k];
+  const today=tkey(); if(!salahSel) salahSel=today;
+  const k=salahSel; S.salah[k]=S.salah[k]||{}; const s=S.salah[k];
   const str=streakDays(salahComplete);
   a.appendChild(el(`<header><p class="eyebrow">On time, with presence</p><h1 class="h-title serif">Ṣalāh</h1></header>`));
   a.appendChild(el(`<div class="card"><p class="label">Gentle streak</p>
     <div class="streak"><span class="num">${str}</span><span class="sub">day${str==1?'':'s'} keeping all five. ${str==0?'Begin today — even one prayer is a return.':'Quietly beautiful, masha\u2019Allah.'}</span></div></div>`));
-  const c=el(`<div class="card"></div>`);
+
+  // editor for the selected day
+  const isToday=k===today;
+  const ed=el(`<div class="card"><p class="label">${isToday?"Today":gregLong(new Date(k))}</p>
+    ${isToday?"":`<button class="mini" style="margin-bottom:8px">‹ Back to today</button>`}</div>`);
+  if(!isToday) ed.querySelector(".mini").onclick=()=>{salahSel=today;render();};
   SALAH.forEach(([p,ar])=>{
     const st=s[p]||0;
     const r=el(`<div class="salah-row"><div><span class="n serif">${p[0].toUpperCase()+p.slice(1)}</span><span class="ar-s">${ar}</span></div>
       <button class="sdot ${st==1?'on':''}${st==2?'ot':''}" aria-label="${p}"></button></div>`);
     r.querySelector(".sdot").onclick=()=>{s[p]=((s[p]||0)+1)%3;save();render();};
-    c.appendChild(r);
+    ed.appendChild(r);
   });
-  a.appendChild(c);
+  a.appendChild(ed);
   a.appendChild(el(`<div class="legend"><span><i style="border:2px solid var(--mocha)"></i>Tap once — prayed</span>
     <span><i style="background:var(--mocha)"></i>Prayed</span><span><i style="background:var(--gold)"></i>On time</span></div>`));
+
+  // monthly prayer log
+  const base=new Date(); base.setDate(1); base.setMonth(base.getMonth()+salahMonth);
+  const y=base.getFullYear(), m=base.getMonth();
+  const monthName=new Intl.DateTimeFormat("en-GB",{month:"long",year:"numeric"}).format(base);
+  const nav=el(`<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+    <button class="mini" id="pm">‹</button><div class="serif" style="font-size:20px">${monthName}</div><button class="mini" id="nm">›</button></div>
+    <p class="sub" style="margin:0 0 8px">Your prayer log — tap any day to review or fix it.</p><div class="cal" id="scal"></div></div>`);
+  nav.querySelector("#pm").onclick=()=>{salahMonth--;render();};
+  nav.querySelector("#nm").onclick=()=>{salahMonth++;render();};
+  const grid=nav.querySelector("#scal");
+  ["M","T","W","T","F","S","S"].forEach(d=>grid.appendChild(el(`<div class="dow">${d}</div>`)));
+  const first=new Date(y,m,1); const lead=(first.getDay()+6)%7;
+  for(let i=0;i<lead;i++) grid.appendChild(el(`<div class="day empty"></div>`));
+  const days=new Date(y,m+1,0).getDate();
+  for(let dd=1;dd<=days;dd++){
+    const date=new Date(y,m,dd); const dk=tkey(date);
+    const sd=S.salah[dk]||{}; const cnt=SALAH.filter(([p])=>(sd[p]||0)>=1).length;
+    const full=cnt===5; const sel=dk===salahSel;
+    const style=full?"background:var(--gold);color:var(--bg);border-color:var(--gold)":(cnt>0?"background:var(--mocha);color:var(--cream);border-color:var(--mocha)":"");
+    const cell=el(`<button class="day ${dk===today?'today':''}" style="${style}">${dd}${cnt>0&&!full?`<span class="sp" style="color:inherit">${cnt}/5</span>`:''}${full?'<span class="sp" style="color:inherit">✦</span>':''}</button>`);
+    if(sel) cell.style.boxShadow="0 0 0 2px var(--cream)";
+    cell.onclick=()=>{salahSel=dk;render();window.scrollTo({top:0,behavior:"smooth"});};
+    grid.appendChild(cell);
+  }
+  a.appendChild(nav);
+  a.appendChild(el(`<p class="note">Every day is saved on your phone. Missed marking a prayer? Just tap that day above and set it right — <b>your log is yours to keep honest.</b></p>`));
 }
 
 /* DHIKR */
@@ -588,6 +656,7 @@ function vFasting(a){
 function vMore(a){
   a.appendChild(el(`<header><p class="eyebrow">Becoming, gently</p><h1 class="h-title serif">More</h1></header>`));
   const tiles=[
+    ["stats","◔","Progress","Your streaks & totals over time"],
     ["nafl","☾","Nafl Prayers","Tahajjud, Ḍuḥā, Witr & more"],
     ["quran","۩","Qur'ān","Mulk, Kahf, Ayatul Kursi & progress"],
     ["names","✦","99 Names","Learn one each day"],
@@ -598,6 +667,7 @@ function vMore(a){
     ["journal","✎","Journal","Your Islamic goals & reflections"],
     ["becoming","☀","Becoming Her","Who you're growing into, inshaAllah"],
     ["solo","❀","Solo Dates","Dates with yourself, captured"],
+    ["theme","◐","Appearance","Change your colours"],
     ["backup","⤓","Backup","Save & restore your data"]
   ];
   const g=el(`<div class="grid"></div>`);
@@ -609,6 +679,74 @@ function backHeader(a,title,eyebrow){
   const h=el(`<header><button class="h-back">‹ More</button><p class="eyebrow">${eyebrow}</p><h1 class="h-title serif">${title}</h1></header>`);
   h.querySelector(".h-back").onclick=()=>{view="more";render();};
   a.appendChild(h);
+}
+
+/* PROGRESS / STATS */
+function monthFasts(){
+  const now=new Date(); let n=0;
+  Object.keys(S.fasting).forEach(k=>{ if(S.fasting[k]){ const d=new Date(k); if(d.getFullYear()==now.getFullYear()&&d.getMonth()==now.getMonth()) n++; } });
+  return n;
+}
+function vStats(a){
+  backHeader(a,"Progress","Quiet proof you're growing");
+  const salahStreak=streakDays(salahComplete);
+  const tahajjudStreak=streakDays(d=>!!(S.naflLog[d]&&S.naflLog[d].tahajjud));
+  let bestHabit=0,bestHabitName="";
+  S.habits.forEach(h=>{const st=streakDays(d=>!!(S.habitLog[d]&&S.habitLog[d][h.id]));if(st>bestHabit){bestHabit=st;bestHabitName=h.name;}});
+  const answered=S.dualist.filter(d=>d.answered).length;
+  const names=Object.keys(S.namesLearned).filter(x=>S.namesLearned[x]).length;
+  const chal=Object.keys(S.quranChallenge||{}).filter(x=>S.quranChallenge[x]).length;
+  const stats=[
+    ["Ṣalāh streak",salahStreak,"days keeping all five"],
+    ["Tahajjud streak",tahajjudStreak,"nights in a row"],
+    ["Fasts this month",monthFasts(),"sunnah days"],
+    ["Du'ās answered",answered,"alhamdulillah"],
+    ["99 Names learned",names+" / 99",""],
+    ["Qur'ān challenge",chal+" / 30",""],
+    ["Gratitude noted",S.gratitude.length,"blessings"],
+    ["Journal entries",S.journal.length,""]
+  ];
+  const g=el(`<div class="grid"></div>`);
+  stats.forEach(([n,v,sub])=>g.appendChild(el(`<div class="tile" style="cursor:default">
+    <span class="serif" style="font-size:38px;color:var(--gold);line-height:1">${v}</span>
+    <div class="t-n serif" style="font-size:17px;margin-top:6px">${n}</div>${sub?`<div class="t-d">${sub}</div>`:''}</div>`)));
+  a.appendChild(g);
+  if(bestHabit>0) a.appendChild(el(`<div class="card card-soft"><p class="label">Strongest habit</p><p class="serif" style="font-size:20px;margin:2px 0">${bestHabitName}</p><span class="sub">🔥 ${bestHabit} day streak — keep it gentle, keep it going.</span></div>`));
+  a.appendChild(el(`<p class="note">Numbers are never the point — they're just a quiet mirror. Every one of these is a step you actually took. <b>Allah sees the effort, not only the streak.</b></p>`));
+}
+
+/* APPEARANCE / THEMES */
+const THEMES={
+  forest:{name:"Forest",dot:"#6F8E5F",v:["#2C3A28","#36452F","#414F37","#4D5C41","#F2F5EC","#A6BE99","#6F8E5F","#89A777","#B8D49B","rgba(184,212,155,.16)","#CFE3B0"]},
+  ocean:{name:"Ocean",dot:"#5E84BE",v:["#13203A","#1C2C4A","#26375A","#37496E","#EAF1FB","#A6B8D6","#5E84BE","#82A2D6","#74B4E8","rgba(116,180,232,.16)","#7FB7A8"]},
+  plum:{name:"Plum",dot:"#8A6BB0",v:["#221832","#2E2142","#392B50","#4C3A66","#F1ECF7","#BBA9CE","#8A6BB0","#A488C9","#D6AE63","rgba(214,174,99,.16)","#9FCBB0"]},
+  burgundy:{name:"Burgundy",dot:"#A14E5E",v:["#2A141A","#3A1E25","#48262E","#5E3640","#F6EAEC","#CDA6AE","#A14E5E","#BE6E7D","#D6AE63","rgba(214,174,99,.16)","#9FCBB0"]},
+  terracotta:{name:"Terracotta",dot:"#C4754A",v:["#2D1A12","#3D2719","#4B3120","#5F3E29","#F6ECE2","#CDB29E","#C4754A","#D8916A","#E0A458","rgba(224,164,88,.16)","#A7B98C"]},
+  rose:{name:"Rose",dot:"#C77B9C",v:["#2A1620","#38212F","#45293A","#5A3A4B","#FBEEF3","#D3A9BC","#C77B9C","#D796B0","#ED9FC5","rgba(237,159,197,.16)","#9DBE93"]},
+  slate:{name:"Slate",dot:"#52708F",v:["#14171C","#1D2128","#272C34","#39404A","#E9ECF1","#93A0AF","#52708F","#7088A4","#6BA3DC","rgba(107,163,220,.15)","#6FB39A"]}
+};
+const THEMEVARS=["--bg","--panel","--panel2","--line","--cream","--muted","--mocha","--mocha-light","--gold","--gold-soft","--green"];
+function applyTheme(key){
+  const t=THEMES[key]; if(!t) return;
+  t.v.forEach((val,i)=>document.documentElement.style.setProperty(THEMEVARS[i],val));
+  const m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute("content",t.v[0]);
+}
+function vTheme(a){
+  backHeader(a,"Appearance","Your light, your colours");
+  const cur=S._theme||"forest";
+  const c=el(`<div class="card"><p class="label">Palette</p></div>`);
+  Object.keys(THEMES).forEach(key=>{
+    const t=THEMES[key]; const on=key==cur;
+    const r=el(`<div class="dua" style="display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;padding:14px 0">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="width:26px;height:26px;border-radius:50%;background:${t.dot};display:inline-block;border:2px solid var(--line)"></span>
+        <span class="serif" style="font-size:19px">${t.name}</span></div>
+      <span style="color:var(--gold);font-size:18px">${on?"✓":""}</span></div>`);
+    r.onclick=()=>{S._theme=key;save();applyTheme(key);render();};
+    c.appendChild(r);
+  });
+  a.appendChild(c);
+  a.appendChild(el(`<p class="note">Pick whatever feels like home. Emerald is where Guiding Light started, but the light looks lovely in every colour. Your choice is saved.</p>`));
 }
 
 /* NAFL PRAYERS */
@@ -1139,7 +1277,7 @@ function vSolo(a){
 
 /* nav */
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{view=b.dataset.v;render();});
-load(); render();
+load(); if(S._theme)applyTheme(S._theme); render();
 </script>
 </body>
 </html>
