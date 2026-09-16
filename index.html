@@ -401,7 +401,7 @@ function el(h){const t=document.createElement("template");t.innerHTML=h.trim();r
 function render(){
   const a=document.getElementById("app"); a.innerHTML="";
   document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.v===(["home","salah","dhikr","fasting"].includes(view)?view:"more")));
-  ({home:vHome,salah:vSalah,dhikr:vDhikr,fasting:vFasting,more:vMore,nafl:vNafl,tahajjud:vTahajjud,backup:vBackup,quran:vQuran,dualist:vDualist,names:vNames,stats:vStats,theme:vTheme,period:vPeriod,dualib:vDualib,muhasabah:vMuhasabah,ilm:vIlm,sacred:vSacred,hadith:vHadith}[view]||vHome)(a);
+  ({home:vHome,salah:vSalah,dhikr:vDhikr,fasting:vFasting,more:vMore,nafl:vNafl,tahajjud:vTahajjud,backup:vBackup,quran:vQuran,dualist:vDualist,names:vNames,stats:vStats,theme:vTheme,period:vPeriod,dualib:vDualib,muhasabah:vMuhasabah,ilm:vIlm,sacred:vSacred,hadith:vHadith,collection:vCollection}[view]||vHome)(a);
   window.scrollTo(0,0);
 }
 
@@ -453,13 +453,13 @@ function vHome(a){
   const dc=S.dhikrCount[k]||{}, dd=S.dhikrDone[k]||{};
   const cDone=COUNTERS.filter(c=>(dc[c.id]||0)>=c.t||dd[c.id]).length;
   const ad=S.adhkar[k]||{}; const adDone=(ad.morning?1:0)+(ad.evening?1:0);
-  const qd=S.quranLog[k]||{}; const qDone=["mulk","kursi","waqiah","kahf"].filter(x=>qd[x]).length;
+  const qd=S.quranLog[k]||{}; const qKeys=(new Date().getDay()==5)?["mulk","kursi","waqiah","kahf"]:["mulk","kursi","waqiah"]; const qDone=qKeys.filter(x=>qd[x]).length;
   const isPeriod=!!S.period[k];
   const rows=[
     ["Ṣalāh",salahDone,5,"salah"],
     ["Counted dhikr",cDone,COUNTERS.length,"dhikr"],
     ["Adhkār",adDone,2,"dhikr"],
-    ["Qur'ān today",qDone,4,"quran"]
+    ["Qur'ān today",qDone,qKeys.length,"quran"]
   ];
   const sum=el(`<div class="card"><p class="label">Today so far</p></div>`);
   rows.forEach(([n,d,t,v])=>{
@@ -669,6 +669,7 @@ function vMore(a){
     ["dualib","❁","Du'ā Library","Masnūn du'ās for every moment"],
     ["names","✦","99 Names","Learn one each day"],
     ["dualist","☆","My Du'ās","What you're asking Allah for"],
+    ["collection","❦","My Collection","Your own du'ā collection"],
     ["hadith","❞","Hadith","A saying of the Prophet ﷺ, daily"],
     ["muhasabah","✵","Muḥāsabah","A gentle nightly self-reckoning"],
     ["ilm","✎","ʿIlm","Track your Islamic learning"],
@@ -1367,6 +1368,106 @@ function vHadith(a){
   btn.onclick=()=>{shown=(shown+1)%HADITH.length;card.querySelector(".har").textContent=HADITH[shown].ar;card.querySelector(".htext").textContent='"'+HADITH[shown].t+'"';card.querySelector(".hsrc").textContent=HADITH[shown].s;};
   a.appendChild(btn);
   a.appendChild(el(`<p class="note">A new saying of the Prophet ﷺ greets you each day. Sit with it — one hadith, truly lived, can change a life.</p>`));
+}
+
+/* MY COLLECTION — Manar's own pasted du'ās */
+const COLLECTION=[
+ {cat:"My curated du'ās",items:[
+  {ar:`اللَّهُمَّ اغْفِرْ لِي ذَنْبِي، وَوَسِّعْ لِي فِي دَارِي، وَبَارِكْ لِي فِي رِزْقِي`,tr:`Allahummaghfir lee dhanbee, wa wassi' lee fee daaree, wa baarik lee fee rizqee`,en:`O Allah, forgive my sin, make my home spacious for me, and bless me in my provision.`},
+  {ar:`اللَّهُمَّ لَا تُخْزِنِي يَوْمَ الْقِيَامَةِ`,tr:`Allahumma laa tukhzinee yawmal-qiyaamah… fa-inna man tukhzihi yawmal-ba'thi faqad akhzaytah`,en:`O Allah, do not disgrace me on the Day of Resurrection, for whoever You disgrace then has surely been disgraced.`},
+  {ar:`اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْهَدْمِ، وَأَعُوذُ بِكَ مِنَ الْغَرَقِ، وَأَعُوذُ بِكَ مِنْ أَنْ يَتَخَبَّطَنِيَ الشَّيْطَانُ عِنْدَ الْمَوْتِ`,tr:`Allahumma innee a'oodhu bika minal-hadm, wa a'oodhu bika minal-gharaq, wa a'oodhu bika min an yatakhabbaṭaniyash-shaytaanu 'indal-mawt`,en:`O Allah, I seek refuge from being crushed, from drowning, and from being snatched by Satan at death.`},
+  {ar:`أَشْهَدُ أَنْ لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ`,tr:`Ashhadu an laa ilaaha illallaahu wahdahu laa shareeka lah, ilaahan waahidan ahadan samadan, lam yattakhidh saahibatan wa laa waladan, wa lam yakun lahu kufuwan ahad`,en:`I bear witness there is no god but Allah alone, One, Unique, Eternal Refuge — He has no spouse or child, and none is comparable to Him.`},
+  {tr:`Allahummaghfir lee maa qaddamtu, wa maa akhkhartu, wa maa asrartu, wa maa a'lantu, wa maa asraftu. Antal-Muqaddimu wa antal-Mu'akhkhir, laa ilaaha illaa ant`,en:`O Allah, forgive what I did before and later, in secret and openly, and what I exceeded in. You bring forward and put back; there is no god but You.`},
+  {tr:`Allahummaghfir lee khatee'atee wa jahlee, wa israafee fee amree, wa maa anta a'lamu bihi minnee. Allahummaghfir lee jiddee wa hazlee, wa khata'ee wa 'amdee, wa kullu dhaalika 'indee`,en:`O Allah, forgive my mistakes, ignorance and excess, and what You know better than I. Forgive my seriousness and jest, my errors and deliberate acts — all of it is from me.`},
+  {ar:`اللَّهُمَّ أَصْلِحِ الصَّالِحِينَ فَأَصْلِحْنِي حَتَّى أَكُونَ مِنَ الصَّالِحِينَ`,tr:`Allahumma aslihis-saaliheena fa-aslihnee hattaa akoona minas-saaliheen`,en:`O Allah, as You rectify the righteous, rectify me until I am among the righteous.`},
+  {ar:`اللَّهُمَّ اجْعَلْ أَوْسَعَ رِزْقِي عِنْدَ كِبَرِ سِنِّي وَانْقِضَاءِ عُمْرِي`,tr:`Allahummaj'al awsa'a rizqee 'inda kibari sinnee wanqidaa'i 'umree`,en:`O Allah, make my greatest provision come in my old age and toward the end of my life.`},
+  {tr:`Allahumma in kaana rizqee fis-samaa'i fa-anzilhu, wa in kaana fil-ardi fa-azhirhu, wa in kaana ba'eedan fa-qarribhu, wa in kaana qareeban fa-yassirhu, wa in kaana qaleelan fa-kaththirhu, wa in kaana katheeran fa-baarik lee feehi`,en:`O Allah, wherever my provision is — send it down, bring it out, bring it near, make it easy, increase it, and bless it for me.`},
+  {ar:`حَسْبِيَ اللَّهُ وَنِعْمَ الْوَكِيلُ، وَأُفَوِّضُ أَمْرِي إِلَى اللَّهِ`,tr:`Hasbiyallaahu wa ni'mal-wakeel. Ufawwidu amree ilallaah`,en:`Allah is sufficient for me, the best Disposer of affairs. I entrust my affair to Allah.`},
+  {tr:`Rabbi innee maghloobun fantasir, wa anta ta'lamu bi-haalee wa da'fee wa haajatee`,en:`My Lord, I am overcome, so grant me victory. You know my state, my weakness and my need.`},
+  {tr:`Yaa Kaafee, ikfinee bimaa ahammanee wa maa ahzananee, wa aghninee bifadlika 'an khalqik`,en:`O Sufficient One, suffice me against all that worries and grieves me, and enrich me by Your bounty above Your creation.`},
+  {tr:`Allahummajbur kasree, wa daawi jurhee, washrah sadree, waghfir dhanbee, warzuqnee min haythu laa ahtasib`,en:`O Allah, mend what is broken in me, heal my wound, expand my chest, forgive my sin, and provide for me from where I do not expect.`},
+  {tr:`Yaa Raheem, afrigh 'alayya sabran, wa thabbit qalbee 'alaa taa'atik`,en:`O Most Merciful, pour patience upon me and make my heart steadfast upon obeying You.`},
+  {ar:`لَا إِلَٰهَ إِلَّا أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ`,tr:`Laa ilaaha illaa anta, subhaanaka innee kuntu minaz-zaalimeen`,en:`There is no god but You. Glory be to You. Indeed, I was among the wrongdoers.`},
+  {ar:`لَا مَلْجَأَ وَلَا مَنْجَا مِنْكَ إِلَّا إِلَيْكَ`,tr:`Laa malja'a wa laa manjaa minka illaa ilayk`,en:`There is no refuge and no escape from You except to You.`},
+  {tr:`As'aluka ya Allah farajan qareeban, wa nasran mu'azzazan, wa rizqan waasi'an, wa qalban mutma'innan, wa sa'aadatan laa tazool`,en:`I ask You, O Allah, for near relief, strengthened victory, abundant provision, a tranquil heart, and happiness that does not fade.`},
+  {tr:`Allahumma aslih lee deenee alladhee huwa 'ismatu amree, wa aslih lee dunyaaya allatee feehaa ma'aashee, wa aslih lee aakhiratee allatee ilayhaa ma'aadee`,en:`O Allah, rectify my religion which safeguards me, my worldly life in which is my living, and my Hereafter to which I return.`},
+  {tr:`Allahumma innee 'abduk, ibnu 'abdik… an taj'alal-Qur'aana rabee'a qalbee, wa noora sadree, wa jalaa'a huznee, wa dhahaaba hammee`,en:`O Allah, I am Your servant… make the Qur'an the spring of my heart, the light of my chest, the remover of my sorrow and worry.`},
+  {tr:`Allahumma innee as'aluka fi'lal-khayraat, wa tarkal-munkaraat, wa hubbal-masaakeen, wa an taghfira lee wa tarhamanee`,en:`O Allah, I ask You for doing good, leaving evil, loving the poor, and that You forgive me and have mercy on me.`},
+  {tr:`Alhamdulillaahilladhee laa yansaa man dhakarah, alhamdulillaahilladhee laa yukhayyibu man rajaah, alhamdulillaahilladhee laa yakilu man tawakkala 'alayhi ilaa ghayrih`,en:`Praise be to Allah who does not forget the one who remembers Him, does not disappoint the one who hopes in Him, nor abandons the one who relies on Him to another.`},
+  {tr:`Allahumma ahsin wuqoofanaa bayna yadayk, waj'alnaa natoobu haqqat-tawbati ilayk, wa laa tukhzinaa fid-dunyaa wa laa fee yawmil-'ard 'alayk`,en:`O Allah, make our standing before You beautiful, let us repent truly, and do not disgrace us in this world or the Day we are presented to You.`},
+  {tr:`A'oodhu bi-wajhillahil-'azeem alladhee laysa shay'un a'zamu minh, wa bi-kalimaatillaahit-taammaat, min sharri maa khalaqa wa bara'a wa dhara'`,en:`I seek refuge in the Magnificent Face of Allah and His perfect words from the evil of all He created.`},
+  {ar:`رَبِّ إِنِّي لِمَا أَنْزَلْتَ إِلَيَّ مِنْ خَيْرٍ فَقِيرٌ`,tr:`Rabbi innee limaa anzalta ilayya min khayrin faqeer`,en:`My Lord, I am in desperate need of whatever good You send down to me.`},
+  {tr:`Allahumma innee as'alukas-thabaata fil-amr, wal-'azeemata 'alar-rushd, wa as'aluka shukra ni'matik, wa husna 'ibaadatik, wa as'aluka qalban saleeman, wa lisaanan saadiqan`,en:`O Allah, I ask You for steadfastness, determination on guidance, gratitude for Your blessing, beautiful worship, a sound heart and a truthful tongue.`},
+  {tr:`Bismillaahi amsaynaa billaahilladhee laysa minhu shay'un mumtani'… (evening protection — the full du'ā of refuge by His names)`,en:`In Allah's name we enter the evening — seeking refuge by His might and beautiful names from every evil of the night and day.`},
+  {tr:`Allahumma innaka wahabtanee iyyaahum min ghayri hawlin minnee wa laa quwwah, fahfazhum bi-hifzhik… (a du'ā for those Allah entrusted to me)`,en:`O Allah, You gifted them to me without any strength of mine — so protect them with Your protection, and make them among Your righteous servants.`},
+  {tr:`Yaa Wadood, yaa Dhal-'Arshil-Majeed, yaa Fa'aalan limaa tureed, as'aluka bi'izzatikal-latee laa turaam, wa mulkikal-ladhee laa yudaam, wa bi-noori wajhik`,en:`O Most Loving, Owner of the Glorious Throne, Doer of what You will — I ask You by Your unassailable might, dominion, and the light of Your Face.`},
+  {ar:`حَسْبِيَ اللَّهُ وَنِعْمَ الْوَكِيلُ`,tr:`Hasbiyallaahu wa ni'mal-wakeel`,en:`Allah is sufficient for me, and He is the best Disposer of affairs.`},
+  {ar:`لَا حَوْلَ لِي وَلَا قُوَّةَ إِلَّا بِكَ`,tr:`Laa hawla lee wa laa quwwata illaa bik`,en:`I have no power and no strength except through You.`}
+ ]},
+ {cat:"My du'ā list",items:[
+  {tr:`Subhanallah · Alhamdulillah · La ilaha illallah · Allahu Akbar · Astaghfirullah · Subhanallahi wa bihamdih Subhanallahil 'azeem · La hawla wa la quwwata illa billah · Astaghfirullaha wa atubu ilayh · Hasbunallahu wa ni'mal wakeel`,en:`The daily words of remembrance.`},
+  {tr:`Allahumma inni as'alukal Jannah`,en:`O Allah, I ask You for Paradise.`},
+  {tr:`Allahumma ajirni minan Naar`,en:`O Allah, protect me from the Fire.`},
+  {tr:`Ya Muqallibal-Qulub, thabbit qalbi 'ala Deenik`,en:`O Turner of hearts, keep my heart firm on Your religion.`},
+  {tr:`Allahumma inni as'alukal 'Afiyah, Allahumma inni as'aluka husnal Khatimah`,en:`O Allah, I ask You for wellbeing and a good ending.`},
+  {tr:`Allahumma inni as'aluka tawbatan nasoohan qablal maut, wa rahmatan indal maut, wa raahatan ba'dal maut`,en:`O Allah, I ask You for sincere repentance before death, mercy at death, and rest after it.`},
+  {tr:`Allahumma inni as'aluka 'ilman naafi'an, wa rizqan tayyiban, wa 'amalan mutaqabbalan`,en:`O Allah, I ask You for beneficial knowledge, wholesome provision, and accepted deeds.`},
+  {tr:`Allahummaj'al khayra ayyamina awaakhiraha, wa khayra 'amalina khawaatimaha`,en:`O Allah, make the best of my days their last, and the best of my deeds their endings.`},
+  {tr:`Rabbir hamhuma kama Rabbayani Sagheera`,en:`My Lord, have mercy on my parents as they raised me small.`},
+  {tr:`Rabbana hablana min azwaajina wa dhurriyyatina qurrata a'yunin waj'alna lil-muttaqina imama`,en:`Our Lord, grant us comfort in our spouses and children, and make us leaders for the righteous.`},
+  {tr:`Rabbi zidni 'ilman naafi'a`,en:`My Lord, increase me in beneficial knowledge.`},
+  {tr:`Allahumma inni as'alukal Huda wat-Tuqa wal 'Afaafa wal Ghina`,en:`O Allah, I ask You for guidance, piety, chastity and sufficiency.`},
+  {tr:`La ilaha illallahul 'Azimul Haleem, La ilaha illallahu Rabbul 'arshil 'azim, La ilaha illallahu Rabbus samawati wa Rabbul ardi wa Rabbul 'arshil kareem`,en:`There is no god but Allah, the Magnificent, the Forbearing, Lord of the Mighty Throne, of the heavens and earth and the Noble Throne.`},
+  {tr:`Allahumma A'inni 'ala Zikrika wa Shukrika wa Husni 'Ibadatik`,en:`O Allah, help me remember You, thank You, and worship You well.`},
+  {tr:`Allahummaghfirli Warhamni Waafini Wahdini Warzuqni Warfa'ni`,en:`O Allah, forgive me, have mercy on me, keep me well, guide me, provide for me, and raise me.`},
+  {tr:`Allahumma balighna laylatul Qadr`,en:`O Allah, let us reach the Night of Decree.`},
+  {tr:`Rabbana taqabbal minna innaka antas Samee'ul 'Aleem`,en:`Our Lord, accept from us; indeed You are the All-Hearing, All-Knowing.`},
+  {tr:`Rabbighfirlee wa tub 'alayya innaka antat-Tawwaabu ar-Raheem`,en:`My Lord, forgive me and accept my repentance; You are the Ever-Relenting, the Merciful.`},
+  {tr:`Rabbana asrif 'anna 'adhaba Jahannam, inna 'adhabaha kana gharama`,en:`Our Lord, turn away from us the punishment of Hell; its punishment is ever-clinging.`},
+  {tr:`Allahumma inni a'udhu bika an ushrika bika wa ana a'lam, wa astaghfiruka lima la a'lam`,en:`O Allah, I seek refuge from associating with You knowingly, and seek forgiveness for what I do not know.`},
+  {tr:`Rabbi Ja'alni Muqimas Salati wa min Dhurriyyati, Rabbana wa Taqabbal Du'a`,en:`My Lord, make me and my offspring establishers of prayer; our Lord, accept my supplication.`},
+  {tr:`Allahumma yassir wa la tu'assir, Rabbi tammim bil khayr`,en:`O Allah, make easy and not hard; my Lord, complete it with good.`},
+  {tr:`Allahumma anta hasbi fi man zalamni, wa anta hasbi fi man aazani, wa anta hasbi fi man kaharni, Hasbunallahu wa ni'mal wakeel`,en:`O Allah, You suffice me against whoever wrongs, harms or overpowers me. Allah is enough, the best Disposer.`},
+  {tr:`Astaghfirullaha al-'Azim alladhi la ilaha illa huwal-Hayyul-Qayyum wa atubu ilayh`,en:`I seek forgiveness of Allah the Magnificent, there is no god but Him, the Living, the Sustaining, and I turn to Him.`},
+  {tr:`Rabbishrah li sadri wa yassir li amri, wahlul 'uqdatan min lisani yafqahu qawli`,en:`My Lord, expand my chest, ease my task, and untie my tongue so they understand me.`},
+  {tr:`Rabbi a'udhu bika min hamazaatish-shayaateen, wa a'udhu bika Rabbi an yahduroon`,en:`My Lord, I seek refuge from the whisperings of devils, and from their presence.`},
+  {tr:`Allahumma 'aafini fee badani, Allahumma 'aafini fee sam'i, Allahumma 'aafini fee basari, la ilaha illa ant`,en:`O Allah, grant wellbeing to my body, my hearing and my sight; there is no god but You.`},
+  {tr:`Ya Hayyu Ya Qayyum, birahmatika astagheeth, aslih li sha'ni kullahu, wa la takilni ila nafsi tarfata 'ayn`,en:`O Ever-Living, O Sustaining, by Your mercy I seek relief; set right all my affairs and do not leave me to myself for a blink.`},
+  {tr:`Allahumma Aslih Qalbi wa 'Amali`,en:`O Allah, rectify my heart and my deeds.`},
+  {tr:`Allahumma ij'alna Mufliheen · Allahumma ij'alna minas-Saliheen`,en:`O Allah, make us among the successful and the righteous.`},
+  {tr:`Allahummaghfirli dhanbi, wa wassi' li fi dari, wa barik li fi rizqi`,en:`O Allah, forgive my sin, make my home spacious, and bless my provision.`},
+  {tr:`Allahumma inni a'udhu bika minal-hammi wal-huzni wal-'ajzi wal-kasali wal-jubni wal-bukhli wa ghalabatid-dayni wa qahrir-rijal`,en:`O Allah, I seek refuge from worry, grief, incapacity, laziness, cowardice, miserliness, the burden of debt and being overpowered.`},
+  {tr:`Allahumma imla' qalbi bihubbik`,en:`O Allah, fill my heart with Your love.`},
+  {tr:`A'udhu bikalimatillahit-taammaat, min sharri ma khalaq`,en:`I seek refuge in the perfect words of Allah from the evil of what He created.`},
+  {tr:`Allahumma inni as'aluka al-'afwa wal-'aafiyata fid-dunya wal-aakhirah`,en:`O Allah, I ask You for pardon and wellbeing in this world and the next.`},
+  {tr:`Allahummaghfir lil Muslimina wal Muslimat, wal Mu'minina wal Mu'minat, al-ahyaa'i minhum wal-amwaat`,en:`O Allah, forgive the Muslim and believing men and women, the living and the dead.`},
+  {tr:`Rabbana tina fid-dunya hasanah wa fil-akhirati hasanah wa qina 'adhaban-Naar`,en:`Our Lord, give us good in this world and the next, and protect us from the Fire.`},
+  {tr:`Allahumma ij'al du'aa'i mustajaaban, wallahul Musta'aan`,en:`O Allah, make my supplication answered; and Allah is the One whose help is sought.`},
+  {tr:`Rabbanaghfir li wa li waalidayya wa lil Mu'mineena yawma yaqumul hisaab`,en:`Our Lord, forgive me, my parents and the believers on the Day of Reckoning.`},
+  {tr:`Allahumma inni astakhiruka bi 'ilmika, wa astaqdiruka bi qudratika, wa as'aluka min fadlikal 'azeem`,en:`O Allah, I seek Your guidance by Your knowledge and power, and ask of Your great bounty.`},
+  {tr:`Allahumma anta Hasbi fi man zalamani… Ya Salaam grant me peace`,en:`O Allah, be my sufficiency against those who wrong me — grant me peace and tranquility.`}
+ ]},
+ {cat:"Personal munājāt",items:[
+  {en:`O Allah, accept these words from me even when my tongue cannot express everything my heart carries. Forgive me for the sins I remember and the sins I have forgotten. Give me what is good for me, keep away what will harm me, and make me content with whatever You decree. Put barakah in my rizq, my time, my home, my family, my work and my future. Repair what is broken in me without letting me become bitter. Give me a heart that stays soft toward You. And when I ask You for something, teach me to trust that Your answer — "yes," "not yet," or "I have something better" — is always surrounded by Your wisdom.`},
+  {en:`O Allah, sometimes I have many things to ask of You, but I cannot put them into words. You are As-Samī', You hear everything that is not said; You understand me even when I do not speak. O Al-Mujīb, hear my supplication and answer me. I am weak, and I seek help from You, Al-Qādir. Bless my weary heart with peace.`},
+  {en:`O Allah, Al-Fattāh, if the delay in my life is a test from You, grant me the strength to endure with faith. But if it is due to unseen obstacles, remove them. Open for me the doors that are best for me, and close those that would harm me. If I am holding onto something that is not meant for me, remove it from my heart with ease. Give me understanding when I am lost, ease when I suffer, and hope when I am discouraged. You do not delay without reason, nor withhold without giving something better.`},
+  {en:`Ya Allah, do not leave me vulnerable to the power of people. If they turn away, remain close to me. If they withhold, open for me from where I did not expect. Keep my provision tied to Your decree, not to someone's mood or favour. Strengthen my spine with tawakkul so I stand upright knowing You are Al-Wakīl over all affairs. Make it firm within me that everything I need is in Your mercy.`},
+  {en:`O Allah, bless my parents and my brothers and sisters. Forgive them, have mercy on them, guide them to the straight path, and do not let them leave this world before You are pleased with them. Increase our love, give us light, and reunite us all in Jannatul Firdaus. Alhamdulillah for the blessings You have given me beyond what I deserve.`}
+ ]}
+];
+function vCollection(a){
+  backHeader(a,"My Collection","The du'ās your heart returns to");
+  COLLECTION.forEach(g=>{
+    const card=el(`<div class="card"><button class="cathead" style="background:none;border:none;color:var(--gold);width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;padding:0;font-family:inherit">
+      <span class="label" style="margin:0">${g.cat} · ${g.items.length}</span><span class="chev" style="font-size:20px">＋</span></button>
+      <div class="body" style="padding-left:0"></div></div>`);
+    const body=card.querySelector(".body");
+    g.items.forEach(d=>body.appendChild(el(`<div class="dua">${d.ar?`<div class="ar" style="text-align:right;font-size:20px;color:var(--cream)">${d.ar}</div>`:''}${d.tr?`<div class="dtr serif" style="font-style:italic;margin-top:${d.ar?'6':'0'}px">${d.tr}</div>`:''}${d.en?`<div class="en" style="color:var(--muted);font-size:13.5px;margin-top:5px;line-height:1.55">${d.en}</div>`:''}</div>`)));
+    const chev=card.querySelector(".chev");
+    card.querySelector(".cathead").onclick=()=>{const sh=body.classList.toggle("show");chev.textContent=sh?"−":"＋";};
+    a.appendChild(card);
+  });
+  a.appendChild(el(`<p class="note">Your own collection, gathered in one place for your du'ā sessions. <b>Allah hears every word, spoken and unspoken.</b> Tell me any du'ā you'd like added here and I'll place it.</p>`));
 }
 
 /* nav */
