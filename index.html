@@ -225,8 +225,10 @@ function save(){ try{localStorage.setItem(STORE,JSON.stringify(S));}catch(e){
 function seed(){
   S.salah=S.salah||{}; S.dhikrCheck=S.dhikrCheck||{}; S.dhikrCount=S.dhikrCount||{};
   S.dhikrDone=S.dhikrDone||{}; S.naflLog=S.naflLog||{}; S.adhkar=S.adhkar||{};
-  S.quranLog=S.quranLog||{}; S.quranRead=S.quranRead||{page:0}; S.hifz=S.hifz||[];
+  S.quranLog=S.quranLog||{}; S.quranRead=S.quranRead||{page:0}; S.hifz=S.hifz||[]; S.quranReadLog=S.quranReadLog||[];
   S.dualist=S.dualist||[]; S.gratitude=S.gratitude||[]; S.namesLearned=S.namesLearned||{};
+  S.period=S.period||{}; S.nameNotes=S.nameNotes||{};
+  S.muhasabah=S.muhasabah||[]; S.ilm=S.ilm||[]; S.sadaqah=S.sadaqah||[];
   S.fasting=S.fasting||{}; S.habitLog=S.habitLog||{}; S.journal=S.journal||[];
   S.vision=S.vision||{}; S.soloDone=S.soloDone||{}; S.soloCustom=S.soloCustom||[];
   if(!S.habits) S.habits=[
@@ -261,6 +263,7 @@ function streakDays(predicate){
   return n;
 }
 function salahComplete(k){const s=S.salah[k];if(!s)return false;return ["fajr","dhuhr","asr","maghrib","isha"].every(p=>s[p]>=1);}
+function salahKept(k){ return salahComplete(k) || !!(S.period&&S.period[k]); }
 
 /* ---------- DATA: daily du'as (Manar's list) ---------- */
 const DUAS=[
@@ -362,12 +365,16 @@ const DUAS=[
  en:`O Allah, I disassociate from my own power and strength and take refuge in Yours. Help me and do not help against me, grant me victory and not over me, guide me and make guidance easy for me.`},
 {tr:`Yā Mujībal-muḍṭarri idhā daʿāh, innī muḍṭarrun wa qad daʿawtuka fa-ajibnī yā Ḥayyu yā Qayyūm`,
  ar:`يَا مُجِيبَ الْمُضْطَرِّ إِذَا دَعَاهُ، إِنِّي مُضْطَرٌّ وَقَدْ دَعَوْتُكَ فَأَجِبْنِي يَا حَيُّ يَا قَيُّومُ`,
- en:`O Responder to the distressed when they call — I am in distress and I have called upon You, so answer me, O Ever-Living, O Self-Sustaining.`}
+ en:`O Responder to the distressed when they call — I am in distress and I have called upon You, so answer me, O Ever-Living, O Self-Sustaining.`},
+{tr:`Allāhumma anta al-Ghaniyyu yā Fattāḥ, iftaḥ lī abwāba raḥmatika wa rizqika wa faḍlika`,
+ ar:`اللَّهُمَّ أَنْتَ الْغَنِيُّ يَا فَتَّاحُ، افْتَحْ لِي أَبْوَابَ رَحْمَتِكَ وَرِزْقِكَ وَفَضْلِكَ`,
+ en:`O Allah, You are the Self-Sufficient, O Opener — open for me the doors of Your mercy, Your provision, and Your bounty.`}
 ];
 
 /* counted dhikr (targets) */
 const COUNTERS=[
- {id:"astgh",tr:`Astaghfirullāha wa atūbu ilayh`,ar:`أَسْتَغْفِرُ اللَّهَ وَأَتُوبُ إِلَيْهِ`,t:2000},
+ {id:"astgh",tr:`Astaghfirullāha wa atūbu ilayh`,ar:`أَسْتَغْفِرُ اللَّهَ وَأَتُوبُ إِلَيْهِ`,t:1000},
+ {id:"iyyaka",tr:`Iyyāka naʿbudu wa iyyāka nastaʿīn`,ar:`إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ`,t:100},
  {id:"salawat",tr:`Allāhumma ṣalli wa sallim ʿalā nabiyyinā Muḥammad`,ar:`اللَّهُمَّ صَلِّ وَسَلِّمْ عَلَى نَبِيِّنَا مُحَمَّد`,t:1000},
  {id:"tahlil",tr:`Lā ilāha illallāh`,ar:`لَا إِلَهَ إِلَّا اللَّهُ`,t:100},
  {id:"yunus",tr:`Lā ilāha illā Anta subḥānaka innī kuntu minaẓ-ẓālimīn`,ar:`لَا إِلَهَ إِلَّا أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ`,t:100},
@@ -387,11 +394,6 @@ const AFFIRM=[1,2,14,23,24,25,21,30,5,29];
 
 const SALAH=[["fajr","الفجر"],["dhuhr","الظهر"],["asr","العصر"],["maghrib","المغرب"],["isha","العشاء"]];
 
-const SOLO=["Go for a walk","Try a new recipe","Have a picnic for one","At-home spa night","Read in a quiet café",
-"Watch the sunrise","Watch the sunset","Visit a garden or park","Try a new craft","Rearrange a space at home",
-"Bake something sweet","Visit a bookshop","Take yourself out for tea","Pray in a masjid you've never been to",
-"Watch a documentary","Stargaze","Journal somewhere new","Take photos of your city"];
-
 /* ---------- views ---------- */
 let view="home", dhikrTab="counted", subView=null;
 
@@ -399,7 +401,7 @@ function el(h){const t=document.createElement("template");t.innerHTML=h.trim();r
 function render(){
   const a=document.getElementById("app"); a.innerHTML="";
   document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.v===(["home","salah","dhikr","fasting"].includes(view)?view:"more")));
-  ({home:vHome,salah:vSalah,dhikr:vDhikr,fasting:vFasting,more:vMore,nafl:vNafl,tahajjud:vTahajjud,backup:vBackup,quran:vQuran,dualist:vDualist,gratitude:vGratitude,names:vNames,stats:vStats,theme:vTheme,habits:vHabits,reading:vReading,journal:vJournal,becoming:vBecoming,solo:vSolo}[view]||vHome)(a);
+  ({home:vHome,salah:vSalah,dhikr:vDhikr,fasting:vFasting,more:vMore,nafl:vNafl,tahajjud:vTahajjud,backup:vBackup,quran:vQuran,dualist:vDualist,names:vNames,stats:vStats,theme:vTheme,period:vPeriod,dualib:vDualib,muhasabah:vMuhasabah,ilm:vIlm,sacred:vSacred,hadith:vHadith}[view]||vHome)(a);
   window.scrollTo(0,0);
 }
 
@@ -452,16 +454,19 @@ function vHome(a){
   const cDone=COUNTERS.filter(c=>(dc[c.id]||0)>=c.t||dd[c.id]).length;
   const ad=S.adhkar[k]||{}; const adDone=(ad.morning?1:0)+(ad.evening?1:0);
   const qd=S.quranLog[k]||{}; const qDone=["mulk","kursi","waqiah","kahf"].filter(x=>qd[x]).length;
-  const hl=S.habitLog[k]||{}; const hDone=S.habits.filter(hh=>hl[hh.id]).length;
+  const isPeriod=!!S.period[k];
   const rows=[
     ["Ṣalāh",salahDone,5,"salah"],
     ["Counted dhikr",cDone,COUNTERS.length,"dhikr"],
     ["Adhkār",adDone,2,"dhikr"],
-    ["Qur'ān today",qDone,4,"quran"],
-    ["Habits",hDone,S.habits.length,"habits"]
+    ["Qur'ān today",qDone,4,"quran"]
   ];
   const sum=el(`<div class="card"><p class="label">Today so far</p></div>`);
   rows.forEach(([n,d,t,v])=>{
+    if(n==="Ṣalāh"&&isPeriod){
+      const r=el(`<div style="padding:9px 0;cursor:pointer"><div style="font-size:13.5px">Ṣalāh · <span style="color:var(--gold)">resting 🤍 your streak is safe</span></div></div>`);
+      r.onclick=()=>{view=v;render();}; sum.appendChild(r); return;
+    }
     const pct=t?Math.round(d/t*100):0;
     const r=el(`<div style="padding:9px 0;cursor:pointer">
       <div style="display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:5px"><span>${n}</span><span style="color:var(--muted)"><b style="color:var(--cream)">${d}</b> / ${t}</span></div>
@@ -480,16 +485,17 @@ let salahSel=null, salahMonth=0;
 function vSalah(a){
   const today=tkey(); if(!salahSel) salahSel=today;
   const k=salahSel; S.salah[k]=S.salah[k]||{}; const s=S.salah[k];
-  const str=streakDays(salahComplete);
+  const str=streakDays(salahKept);
   a.appendChild(el(`<header><p class="eyebrow">On time, with presence</p><h1 class="h-title serif">Ṣalāh</h1></header>`));
   a.appendChild(el(`<div class="card"><p class="label">Gentle streak</p>
-    <div class="streak"><span class="num">${str}</span><span class="sub">day${str==1?'':'s'} keeping all five. ${str==0?'Begin today — even one prayer is a return.':'Quietly beautiful, masha\u2019Allah.'}</span></div></div>`));
+    <div class="streak"><span class="num">${str}</span><span class="sub">day${str==1?'':'s'} kept. ${str==0?'Begin today — even one prayer is a return.':'Quietly beautiful, masha\u2019Allah.'}</span></div></div>`));
 
   // editor for the selected day
   const isToday=k===today;
   const ed=el(`<div class="card"><p class="label">${isToday?"Today":gregLong(new Date(k))}</p>
     ${isToday?"":`<button class="mini" style="margin-bottom:8px">‹ Back to today</button>`}</div>`);
   if(!isToday) ed.querySelector(".mini").onclick=()=>{salahSel=today;render();};
+  if(S.period[k]) ed.appendChild(el(`<div class="card-soft" style="border-radius:10px;padding:12px 14px;margin-bottom:10px"><span class="sub" style="color:var(--gold)">You're on your period — no ṣalāh is due, and your streak stays safe. Rest. 🤍</span></div>`));
   SALAH.forEach(([p,ar])=>{
     const st=s[p]||0;
     const r=el(`<div class="salah-row"><div><span class="n serif">${p[0].toUpperCase()+p.slice(1)}</span><span class="ar-s">${ar}</span></div>
@@ -660,14 +666,14 @@ function vMore(a){
     ["stats","◔","Progress","Your streaks & totals over time"],
     ["nafl","☾","Nafl Prayers","Tahajjud, Ḍuḥā, Witr & more"],
     ["quran","۩","Qur'ān","Mulk, Kahf, Ayatul Kursi & progress"],
+    ["dualib","❁","Du'ā Library","Masnūn du'ās for every moment"],
     ["names","✦","99 Names","Learn one each day"],
     ["dualist","☆","My Du'ās","What you're asking Allah for"],
-    ["gratitude","❁","Gratitude","A growing list of blessings"],
-    ["habits","✿","Habits","Tiny daily anchors"],
-    ["reading","❦","Reading","Self-help, one page at a time"],
-    ["journal","✎","Journal","Your Islamic goals & reflections"],
-    ["becoming","☀","Becoming Her","Who you're growing into, inshaAllah"],
-    ["solo","❀","Solo Dates","Dates with yourself, captured"],
+    ["hadith","❞","Hadith","A saying of the Prophet ﷺ, daily"],
+    ["muhasabah","✵","Muḥāsabah","A gentle nightly self-reckoning"],
+    ["ilm","✎","ʿIlm","Track your Islamic learning"],
+    ["sacred","◈","Sacred Days","Countdown to the best days"],
+    ["period","⟳","Cycle","Period days — your streak stays safe"],
     ["theme","◐","Appearance","Change your colours"],
     ["backup","⤓","Backup","Save & restore your data"]
   ];
@@ -690,30 +696,55 @@ function monthFasts(){
 }
 function vStats(a){
   backHeader(a,"Progress","Quiet proof you're growing");
-  const salahStreak=streakDays(salahComplete);
+  const salahStreak=streakDays(salahKept);
   const tahajjudStreak=streakDays(d=>!!(S.naflLog[d]&&S.naflLog[d].tahajjud));
-  let bestHabit=0,bestHabitName="";
-  S.habits.forEach(h=>{const st=streakDays(d=>!!(S.habitLog[d]&&S.habitLog[d][h.id]));if(st>bestHabit){bestHabit=st;bestHabitName=h.name;}});
   const answered=S.dualist.filter(d=>d.answered).length;
   const names=Object.keys(S.namesLearned).filter(x=>S.namesLearned[x]).length;
   const chal=Object.keys(S.quranChallenge||{}).filter(x=>S.quranChallenge[x]).length;
   const stats=[
-    ["Ṣalāh streak",salahStreak,"days keeping all five"],
+    ["Ṣalāh streak",salahStreak,"days kept"],
     ["Tahajjud streak",tahajjudStreak,"nights in a row"],
     ["Fasts this month",monthFasts(),"sunnah days"],
     ["Du'ās answered",answered,"alhamdulillah"],
     ["99 Names learned",names+" / 99",""],
-    ["Qur'ān challenge",chal+" / 30",""],
-    ["Gratitude noted",S.gratitude.length,"blessings"],
-    ["Journal entries",S.journal.length,""]
+    ["Qur'ān challenge",chal+" / 30",""]
   ];
   const g=el(`<div class="grid"></div>`);
   stats.forEach(([n,v,sub])=>g.appendChild(el(`<div class="tile" style="cursor:default">
     <span class="serif" style="font-size:38px;color:var(--gold);line-height:1">${v}</span>
     <div class="t-n serif" style="font-size:17px;margin-top:6px">${n}</div>${sub?`<div class="t-d">${sub}</div>`:''}</div>`)));
   a.appendChild(g);
-  if(bestHabit>0) a.appendChild(el(`<div class="card card-soft"><p class="label">Strongest habit</p><p class="serif" style="font-size:20px;margin:2px 0">${bestHabitName}</p><span class="sub">🔥 ${bestHabit} day streak — keep it gentle, keep it going.</span></div>`));
   a.appendChild(el(`<p class="note">Numbers are never the point — they're just a quiet mirror. Every one of these is a step you actually took. <b>Allah sees the effort, not only the streak.</b></p>`));
+}
+
+/* CYCLE / PERIOD — protects the salah streak */
+let periodMonth=0;
+function vPeriod(a){
+  backHeader(a,"Cycle","Rest is part of the deen");
+  a.appendChild(el(`<div class="card card-soft"><p class="label">Why this is here</p>
+    <span class="sub">During your period there's no ṣalāh to make up and no fasting due — you're excused, by Allah's mercy. Mark those days here and your ṣalāh streak won't break. Keep your dhikr and du'ā if you like; they're always open to you.</span></div>`));
+  const base=new Date(); base.setDate(1); base.setMonth(base.getMonth()+periodMonth);
+  const y=base.getFullYear(), m=base.getMonth();
+  const monthName=new Intl.DateTimeFormat("en-GB",{month:"long",year:"numeric"}).format(base);
+  const nav=el(`<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+    <button class="mini" id="pm">‹</button><div class="serif" style="font-size:20px">${monthName}</div><button class="mini" id="nm">›</button></div>
+    <p class="sub" style="margin:0 0 8px">Tap the days you're on your period.</p><div class="cal" id="pcal"></div></div>`);
+  nav.querySelector("#pm").onclick=()=>{periodMonth--;render();};
+  nav.querySelector("#nm").onclick=()=>{periodMonth++;render();};
+  const grid=nav.querySelector("#pcal");
+  ["M","T","W","T","F","S","S"].forEach(d=>grid.appendChild(el(`<div class="dow">${d}</div>`)));
+  const first=new Date(y,m,1); const lead=(first.getDay()+6)%7; const today=tkey();
+  for(let i=0;i<lead;i++) grid.appendChild(el(`<div class="day empty"></div>`));
+  const days=new Date(y,m+1,0).getDate();
+  for(let dd=1;dd<=days;dd++){
+    const date=new Date(y,m,dd); const dk=tkey(date); const on=S.period[dk];
+    const style=on?"background:var(--gold);color:var(--bg);border-color:var(--gold)":"";
+    const cell=el(`<button class="day ${dk===today?'today':''}" style="${style}">${dd}</button>`);
+    cell.onclick=()=>{ if(S.period[dk]) delete S.period[dk]; else S.period[dk]=true; save(); render(); };
+    grid.appendChild(cell);
+  }
+  a.appendChild(nav);
+  a.appendChild(el(`<p class="note">Marked days are gold. Your streak simply carries over them — <b>rest is worship too, and Allah asks nothing of you that you cannot give.</b></p>`));
 }
 
 /* APPEARANCE / THEMES */
@@ -975,9 +1006,9 @@ function vQuran(a){
   const items=[
     ["mulk","Sūrah Al-Mulk","سورة الملك","Before sleep — it pleads for you in the grave."],
     ["kursi","Āyatul Kursī","آية الكرسي","After every fard prayer — nothing but death stands between you and Jannah."],
-    ["waqiah","Sūrah Al-Wāqiʿah","سورة الواقعة","After Maghrib — recited nightly, a shield against poverty."],
-    ["kahf","Sūrah Al-Kahf","سورة الكهف","On Fridays — a light between this Friday and the next."+(isFri?" ✦ It's Friday today.":"")]
+    ["waqiah","Sūrah Al-Wāqiʿah","سورة الواقعة","After Maghrib — recited nightly, a shield against poverty."]
   ];
+  if(isFri) items.push(["kahf","Sūrah Al-Kahf","سورة الكهف","Fridays only — a light between this Friday and the next. ✦"]);
   const c=el(`<div class="card"><p class="label">Today's recitation</p></div>`);
   items.forEach(([id,n,ar,note])=>{
     const on=S.quranLog[k][id];
@@ -1022,7 +1053,20 @@ function vQuran(a){
   rc.querySelector("input").onchange=e=>{S.quranRead.page=Math.min(604,Math.max(0,+e.target.value||0));save();render();};
   a.appendChild(rc);
 
-  // hifz
+  // recitation log
+  const lg=el(`<div class="card"><p class="label">Recitation log</p>
+    <span class="sub">Note what you recited today and where you reached.</span>
+    <label class="fld">What I recited</label><input id="rlw" placeholder="e.g. Sūrah Al-Baqarah, or Juz 3">
+    <label class="fld">Page reached</label><input id="rlp" type="number" min="0" max="604" placeholder="page">
+    <button class="primary">Add to log</button></div>`);
+  lg.querySelector(".primary").onclick=()=>{const w=lg.querySelector("#rlw").value.trim();const p=lg.querySelector("#rlp").value.trim();
+    if(!w&&!p)return; S.quranReadLog.unshift({id:Date.now(),date:tkey(),what:w,page:p}); if(p)S.quranRead.page=Math.min(604,Math.max(0,+p||0)); save();render();};
+  a.appendChild(lg);
+  if(S.quranReadLog.length){const c=el(`<div class="card"><p class="label">Recent recitations</p></div>`);
+    S.quranReadLog.slice(0,15).forEach(r=>{const e=el(`<div class="jentry"><div class="jd">${gregLong(new Date(r.date))}${r.page?` · page ${r.page}`:''}</div><div class="jt">${(r.what||'—').replace(/</g,"&lt;")}</div><button class="del">delete</button></div>`);
+      e.querySelector(".del").onclick=()=>{S.quranReadLog=S.quranReadLog.filter(x=>x.id!=r.id);save();render();};c.appendChild(e);});
+    a.appendChild(c);}
+
   const hc=el(`<div class="card"><p class="label">Memorising (ḥifẓ)</p></div>`);
   if(S.hifz.length) S.hifz.forEach(h=>{
     const row=el(`<div class="dua"><div class="dua-head"><button class="dcheck ${h.done?'on':''}"></button>
@@ -1068,26 +1112,6 @@ function vDualist(a){
   if(!S.dualist.length) a.appendChild(el(`<p class="note">Write down what you long for and watch, over time, how many get a gold mark. <b>"Call upon Me; I will respond to you." (40:60)</b></p>`));
 }
 
-/* GRATITUDE */
-function vGratitude(a){
-  backHeader(a,"Gratitude","Counting His blessings");
-  const add=el(`<div class="card card-soft"><p class="label">A blessing today</p>
-    <textarea id="gt" placeholder="Name something — small or large — that Allah gave you."></textarea>
-    <button class="primary">Add it</button></div>`);
-  add.querySelector(".primary").onclick=()=>{const t=add.querySelector("#gt").value.trim();if(!t)return;
-    S.gratitude.unshift({id:Date.now(),text:t,date:tkey()});save();render();};
-  a.appendChild(add);
-  if(S.gratitude.length){
-    a.appendChild(el(`<div class="card"><p class="label">Your list</p><span class="sub"><b>${S.gratitude.length}</b> blessing${S.gratitude.length==1?'':'s'} noticed so far.</span></div>`));
-    const c=el(`<div class="card"></div>`);
-    S.gratitude.forEach(g=>{const e=el(`<div class="jentry"><div class="jd">${gregLong(new Date(g.date))}</div>
-      <div class="jt">${g.text.replace(/</g,"&lt;")}</div><button class="del">delete</button></div>`);
-      e.querySelector(".del").onclick=()=>{S.gratitude=S.gratitude.filter(x=>x.id!=g.id);save();render();};
-      c.appendChild(e);});
-    a.appendChild(c);
-  } else a.appendChild(el(`<p class="note"><b>"If you are grateful, I will surely increase you." (14:7)</b> Start with one.</p>`));
-}
-
 /* 99 NAMES */
 const NAMES=[
 ["الرحمن","Ar-Raḥmān","The Most Compassionate"],["الرحيم","Ar-Raḥīm","The Most Merciful"],["الملك","Al-Malik","The Sovereign King"],["القدوس","Al-Quddūs","The Most Holy"],["السلام","As-Salām","The Source of Peace"],["المؤمن","Al-Mu'min","The Granter of Security"],["المهيمن","Al-Muhaymin","The Guardian"],["العزيز","Al-ʿAzīz","The Almighty"],["الجبار","Al-Jabbār","The Compeller"],["المتكبر","Al-Mutakabbir","The Supreme in Greatness"],
@@ -1114,171 +1138,241 @@ function vNames(a){
   big.querySelector(".primary").onclick=()=>{S.namesLearned[idx]=!S.namesLearned[idx];save();render();};
   a.appendChild(big);
 
+  // reflection on today's name
+  const rc=el(`<div class="card"><p class="label">What I learnt about ${ntr}</p>
+    <textarea placeholder="A line on what this name means to you, or how it showed up in your day…">${(S.nameNotes[idx]||"").replace(/</g,"&lt;")}</textarea></div>`);
+  rc.querySelector("textarea").onchange=e=>{const v=e.target.value.trim();if(v)S.nameNotes[idx]=v;else delete S.nameNotes[idx];save();};
+  a.appendChild(rc);
+
   const count=Object.keys(S.namesLearned).filter(x=>S.namesLearned[x]).length;
   a.appendChild(el(`<div class="card"><p class="label">Your progress</p>
     <div class="progress"><i style="width:${Math.round(count/99*100)}%"></i></div>
     <div class="meta"><b>${count}</b> / 99 learned</div></div>`));
 
-  const list=el(`<div class="card"><p class="label">All 99 — tap to mark learned</p></div>`);
+  const list=el(`<div class="card"><p class="label">All 99 — tap a name to add your reflection, the circle to mark it learned</p></div>`);
   NAMES.forEach(([ar,tr,en],i)=>{
-    const on=!!S.namesLearned[i];
+    const on=!!S.namesLearned[i]; const note=S.nameNotes[i]||"";
     const row=el(`<div class="dua" style="padding:11px 0"><div class="dua-head" style="align-items:center">
       <button class="dcheck ${on?'on':''}"></button>
-      <div style="flex:1;display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <div class="ntap" style="flex:1;display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer">
         <div><div class="serif" style="font-size:17px">${i+1}. ${tr}</div><div class="meta">${en}</div></div>
-        <div class="ar" style="font-size:22px;color:${on?'var(--gold)':'var(--muted)'}">${ar}</div></div></div></div>`);
+        <div class="ar" style="font-size:22px;color:${on?'var(--gold)':'var(--muted)'}">${ar}</div></div></div>
+      <div class="notedisp" style="${note?'':'display:none'};padding:8px 0 0 42px"><div style="border-left:2px solid var(--gold);padding:2px 0 2px 10px;color:var(--cream);font-style:italic;font-size:13.5px" class="ntext">${note.replace(/</g,"&lt;")}</div></div>
+      <div class="body" style="padding-left:42px;margin-top:8px"><textarea placeholder="What I learnt about ${tr}…">${note.replace(/</g,"&lt;")}</textarea></div></div>`);
     const chk=row.querySelector(".dcheck");
     chk.onclick=()=>{S.namesLearned[i]=!S.namesLearned[i];chk.classList.toggle("on",S.namesLearned[i]);
       row.querySelector(".ar").style.color=S.namesLearned[i]?"var(--gold)":"var(--muted)";save();};
+    const body=row.querySelector(".body"), disp=row.querySelector(".notedisp"), txt=row.querySelector(".ntext");
+    row.querySelector(".ntap").onclick=()=>body.classList.toggle("show");
+    row.querySelector("textarea").onchange=e=>{
+      const v=e.target.value.trim();
+      if(v){S.nameNotes[i]=v; txt.textContent=v; disp.style.display="";}
+      else{delete S.nameNotes[i]; disp.style.display="none";}
+      save(); body.classList.remove("show");
+    };
     list.appendChild(row);
   });
   a.appendChild(list);
-  a.appendChild(el(`<p class="note">A new name greets you each day. <b>Whoever learns and lives by them enters Jannah.</b> No rush — one at a time.</p>`));
+  a.appendChild(el(`<p class="note">A new name greets you each day — write a little of what you learn, and it stays under the name. <b>Whoever learns and lives by them enters Jannah.</b> No rush — one at a time.</p>`));
 }
 
-/* HABITS */
-function vHabits(a){
-  backHeader(a,"Habits","Make it small, make it stick");
-  const k=tkey(); S.habitLog[k]=S.habitLog[k]||{};
-  S.habits.forEach(h=>{
-    const on=S.habitLog[k][h.id];
-    const str=streakDays(d=>!!(S.habitLog[d]&&S.habitLog[d][h.id]));
-    const it=el(`<div class="item"><div class="hbtop">
-      <div style="flex:1"><div class="hn serif">${h.name}</div>
-      <div class="meta">${h.identity||""}</div>
-      <div class="meta" style="margin-top:4px">🔥 <b>${str}</b> day streak</div></div>
-      <button class="hcheck ${on?'on':''}"></button></div>
-      ${h.two?`<div class="meta" style="margin-top:10px;border-top:1px solid var(--line);padding-top:9px"><b>2-min start:</b> ${h.two}</div>`:''}
-      ${h.stack?`<div class="meta" style="margin-top:4px"><b>Stack:</b> ${h.stack}</div>`:''}
-      <button class="del" style="margin-top:6px">remove</button></div>`);
-    it.querySelector(".hcheck").onclick=()=>{S.habitLog[k][h.id]=!S.habitLog[k][h.id];save();render();};
-    it.querySelector(".del").onclick=()=>{if(confirm("Remove this habit?")){S.habits=S.habits.filter(x=>x.id!=h.id);save();render();}};
-    a.appendChild(it);
+/* DU'Ā LIBRARY — authentic masnūn du'ās */
+const DUALIB=[
+ {cat:"Waking & sleeping",items:[
+   {ar:`الْحَمْدُ لِلَّهِ الَّذِي أَحْيَانَا بَعْدَ مَا أَمَاتَنَا وَإِلَيْهِ النُّشُورُ`,tr:`Al-ḥamdu lillāhilladhī aḥyānā baʿda mā amātanā wa ilayhin-nushūr`,en:`Praise be to Allah who gave us life after death, and to Him is the return.`,note:`on waking · Bukhārī`},
+   {ar:`بِاسْمِكَ اللَّهُمَّ أَمُوتُ وَأَحْيَا`,tr:`Bismika Allāhumma amūtu wa aḥyā`,en:`In Your name, O Allah, I die and I live.`,note:`before sleep · Bukhārī`}]},
+ {cat:"Leaving & entering the home",items:[
+   {ar:`بِسْمِ اللَّهِ، تَوَكَّلْتُ عَلَى اللَّهِ، وَلَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ`,tr:`Bismillāh, tawakkaltu ʿalallāh, wa lā ḥawla wa lā quwwata illā billāh`,en:`In Allah's name, I place my trust in Allah; there is no power nor might except with Allah.`,note:`leaving home · Abū Dāwūd`},
+   {ar:`اللَّهُمَّ إِنِّي أَسْأَلُكَ خَيْرَ الْمَوْلَجِ وَخَيْرَ الْمَخْرَجِ، بِسْمِ اللَّهِ وَلَجْنَا وَبِسْمِ اللَّهِ خَرَجْنَا وَعَلَى اللَّهِ رَبِّنَا تَوَكَّلْنَا`,tr:`Allāhumma innī as'aluka khayral-mawlaji wa khayral-makhraj, bismillāhi walajnā wa bismillāhi kharajnā wa ʿalallāhi rabbinā tawakkalnā`,en:`O Allah, I ask You for the best entering and the best leaving. In Allah's name we enter, in Allah's name we leave, and upon Allah our Lord we rely.`,note:`entering home · Abū Dāwūd`}]},
+ {cat:"Masjid & wuḍū'",items:[
+   {ar:`اللَّهُمَّ افْتَحْ لِي أَبْوَابَ رَحْمَتِكَ`,tr:`Allāhummaftaḥ lī abwāba raḥmatik`,en:`O Allah, open for me the doors of Your mercy.`,note:`entering the masjid · Muslim`},
+   {ar:`اللَّهُمَّ إِنِّي أَسْأَلُكَ مِنْ فَضْلِكَ`,tr:`Allāhumma innī as'aluka min faḍlik`,en:`O Allah, I ask You of Your bounty.`,note:`leaving the masjid · Muslim`},
+   {ar:`أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، وَأَشْهَدُ أَنَّ مُحَمَّدًا عَبْدُهُ وَرَسُولُهُ`,tr:`Ashhadu an lā ilāha illallāhu waḥdahu lā sharīka lah, wa ashhadu anna Muḥammadan ʿabduhu wa rasūluh`,en:`I bear witness that there is no god but Allah alone, with no partner, and that Muhammad is His servant and messenger.`,note:`after wuḍū' · Muslim`}]},
+ {cat:"The washroom",items:[
+   {ar:`اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْخُبُثِ وَالْخَبَائِثِ`,tr:`Allāhumma innī aʿūdhu bika minal-khubuthi wal-khabā'ith`,en:`O Allah, I seek refuge in You from all evil and evil-doers.`,note:`before entering · Bukhārī & Muslim`},
+   {ar:`غُفْرَانَكَ`,tr:`Ghufrānak`,en:`I seek Your forgiveness.`,note:`on leaving · Abū Dāwūd`}]},
+ {cat:"Eating",items:[
+   {ar:`بِسْمِ اللَّهِ`,tr:`Bismillāh`,en:`In the name of Allah. (If forgotten: Bismillāhi fī awwalihi wa ākhirih.)`,note:`before eating`},
+   {ar:`الْحَمْدُ لِلَّهِ الَّذِي أَطْعَمَنِي هَذَا وَرَزَقَنِيهِ مِنْ غَيْرِ حَوْلٍ مِنِّي وَلَا قُوَّةٍ`,tr:`Al-ḥamdu lillāhilladhī aṭʿamanī hādhā wa razaqanīhi min ghayri ḥawlin minnī wa lā quwwah`,en:`Praise be to Allah who fed me this and provided it for me, with no power or might from myself.`,note:`after eating · Abū Dāwūd`}]},
+ {cat:"Travel & protection",items:[
+   {ar:`سُبْحَانَ الَّذِي سَخَّرَ لَنَا هَذَا وَمَا كُنَّا لَهُ مُقْرِنِينَ وَإِنَّا إِلَى رَبِّنَا لَمُنْقَلِبُونَ`,tr:`Subḥānalladhī sakhkhara lanā hādhā wa mā kunnā lahu muqrinīn, wa innā ilā rabbinā lamunqalibūn`,en:`Glory to the One who subjected this to us; we could never have done it ourselves, and to our Lord we shall surely return.`,note:`when travelling · Muslim`},
+   {ar:`بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ`,tr:`Bismillāhilladhī lā yaḍurru maʿas-mihi shay'un fil-arḍi wa lā fis-samā'i wa huwas-Samīʿul-ʿAlīm`,en:`In the name of Allah, with whose name nothing on earth or in the heaven can cause harm — the All-Hearing, the All-Knowing.`,note:`×3 morning & evening · Abū Dāwūd`},
+   {ar:`أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ`,tr:`Aʿūdhu bi-kalimātillāhit-tāmmāti min sharri mā khalaq`,en:`I seek refuge in the perfect words of Allah from the evil of what He created.`,note:`evening & new places · Muslim`}]},
+ {cat:"Distress & anxiety",items:[
+   {ar:`اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْهَمِّ وَالْحَزَنِ، وَالْعَجْزِ وَالْكَسَلِ، وَالْبُخْلِ وَالْجُبْنِ، وَضَلَعِ الدَّيْنِ وَغَلَبَةِ الرِّجَالِ`,tr:`Allāhumma innī aʿūdhu bika minal-hammi wal-ḥazan, wal-ʿajzi wal-kasal, wal-bukhli wal-jubn, wa ḍalaʿid-dayn wa ghalabatir-rijāl`,en:`O Allah, I seek refuge in You from worry and grief, incapacity and laziness, miserliness and cowardice, the burden of debt and being overpowered by others.`,note:`Bukhārī`},
+   {ar:`يَا حَيُّ يَا قَيُّومُ بِرَحْمَتِكَ أَسْتَغِيثُ`,tr:`Yā Ḥayyu yā Qayyūm, bi-raḥmatika astaghīth`,en:`O Ever-Living, O Sustainer, by Your mercy I seek relief.`,note:`when overwhelmed · Tirmidhī`},
+   {ar:`حَسْبِيَ اللَّهُ لَا إِلَهَ إِلَّا هُوَ عَلَيْهِ تَوَكَّلْتُ وَهُوَ رَبُّ الْعَرْشِ الْعَظِيمِ`,tr:`Ḥasbiyallāhu lā ilāha illā huwa, ʿalayhi tawakkaltu wa huwa Rabbul-ʿarshil-ʿaẓīm`,en:`Allah is sufficient for me; there is no god but Him. In Him I trust, and He is the Lord of the Mighty Throne.`,note:`×7 morning & evening · Abū Dāwūd`}]},
+ {cat:"Forgiveness",items:[
+   {ar:`اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ`,tr:`Sayyidul Istighfār: Allāhumma anta Rabbī lā ilāha illā ant, khalaqtanī wa ana ʿabduk, wa ana ʿalā ʿahdika wa waʿdika mastaṭaʿt…`,en:`The master of seeking forgiveness — whoever says it by day with certainty and dies that day enters Jannah.`,note:`Bukhārī`},
+   {ar:`رَبَّنَا ظَلَمْنَا أَنْفُسَنَا وَإِنْ لَمْ تَغْفِرْ لَنَا وَتَرْحَمْنَا لَنَكُونَنَّ مِنَ الْخَاسِرِينَ`,tr:`Rabbanā ẓalamnā anfusanā wa in lam taghfir lanā wa tarḥamnā lanakūnanna minal-khāsirīn`,en:`Our Lord, we have wronged ourselves; if You do not forgive us and have mercy on us, we will surely be among the losers.`,note:`du'ā of Ādam · Qur'ān 7:23`}]},
+ {cat:"Knowledge & the heart",items:[
+   {ar:`رَبِّ زِدْنِي عِلْمًا`,tr:`Rabbi zidnī ʿilmā`,en:`My Lord, increase me in knowledge.`,note:`Qur'ān 20:114`},
+   {ar:`اللَّهُمَّ انْفَعْنِي بِمَا عَلَّمْتَنِي وَعَلِّمْنِي مَا يَنْفَعُنِي وَزِدْنِي عِلْمًا`,tr:`Allāhumman-faʿnī bimā ʿallamtanī wa ʿallimnī mā yanfaʿunī wa zidnī ʿilmā`,en:`O Allah, benefit me by what You taught me, teach me what benefits me, and increase me in knowledge.`,note:`Ibn Mājah & Tirmidhī`},
+   {ar:`يَا مُقَلِّبَ الْقُلُوبِ ثَبِّتْ قَلْبِي عَلَى دِينِكَ`,tr:`Yā Muqallibal-qulūb, thabbit qalbī ʿalā dīnik`,en:`O Turner of hearts, keep my heart firm upon Your religion.`,note:`Tirmidhī`}]},
+ {cat:"Parents & both worlds",items:[
+   {ar:`رَبِّ ارْحَمْهُمَا كَمَا رَبَّيَانِي صَغِيرًا`,tr:`Rabbir-ḥamhumā kamā rabbayānī ṣaghīrā`,en:`My Lord, have mercy on them as they raised me when I was small.`,note:`for parents · Qur'ān 17:24`},
+   {ar:`رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ`,tr:`Rabbanā ātinā fid-dunyā ḥasanah wa fil-ākhirati ḥasanah wa qinā ʿadhāban-nār`,en:`Our Lord, give us good in this world and good in the Hereafter, and protect us from the punishment of the Fire.`,note:`the most frequent du'ā of the Prophet ﷺ · Qur'ān 2:201`}]},
+ {cat:"Rizq & provision",items:[
+   {ar:`اللَّهُمَّ اكْفِنِي بِحَلَالِكَ عَنْ حَرَامِكَ، وَأَغْنِنِي بِفَضْلِكَ عَمَّنْ سِوَاكَ`,tr:`Allāhummakfinī biḥalālika ʿan ḥarāmika, wa aghninī bifaḍlika ʿamman siwāk`,en:`O Allah, suffice me with what is lawful from what is unlawful, and enrich me by Your bounty so I need none besides You.`,note:`Tirmidhī`},
+   {ar:`اللَّهُمَّ إِنِّي أَسْأَلُكَ عِلْمًا نَافِعًا، وَرِزْقًا طَيِّبًا، وَعَمَلًا مُتَقَبَّلًا`,tr:`Allāhumma innī as'aluka ʿilman nāfiʿan, wa rizqan ṭayyiban, wa ʿamalan mutaqabbalā`,en:`O Allah, I ask You for beneficial knowledge, wholesome provision, and accepted deeds.`,note:`say after Fajr · Ibn Mājah`},
+   {ar:`اللَّهُمَّ اغْفِرْ لِي ذَنْبِي، وَوَسِّعْ لِي فِي دَارِي، وَبَارِكْ لِي فِي رِزْقِي`,tr:`Allāhummaghfir lī dhanbī, wa wassiʿ lī fī dārī, wa bārik lī fī rizqī`,en:`O Allah, forgive my sin, make my home spacious for me, and bless me in my provision.`,note:`Tirmidhī`}]},
+ {cat:"Steadfastness & guidance",items:[
+   {ar:`يَا مُقَلِّبَ الْقُلُوبِ ثَبِّتْ قَلْبِي عَلَى دِينِكَ`,tr:`Yā Muqallibal-qulūb, thabbit qalbī ʿalā dīnik`,en:`O Turner of hearts, keep my heart firm upon Your religion.`,note:`Tirmidhī`},
+   {ar:`رَبَّنَا لَا تُزِغْ قُلُوبَنَا بَعْدَ إِذْ هَدَيْتَنَا وَهَبْ لَنَا مِنْ لَدُنْكَ رَحْمَةً إِنَّكَ أَنْتَ الْوَهَّابُ`,tr:`Rabbanā lā tuzigh qulūbanā baʿda idh hadaytanā wa hab lanā min ladunka raḥmah, innaka antal-Wahhāb`,en:`Our Lord, let not our hearts deviate after You have guided us, and grant us mercy from Yourself. You are the Bestower.`,note:`Qur'ān 3:8`},
+   {ar:`رَبَّنَا آتِنَا مِنْ لَدُنْكَ رَحْمَةً وَهَيِّئْ لَنَا مِنْ أَمْرِنَا رَشَدًا`,tr:`Rabbanā ātinā min ladunka raḥmatan wa hayyi' lanā min amrinā rashadā`,en:`Our Lord, grant us mercy from Yourself, and prepare for us right guidance in our affair.`,note:`the du'ā of the People of the Cave · Qur'ān 18:10`}]},
+ {cat:"Health & wellbeing",items:[
+   {ar:`اللَّهُمَّ عَافِنِي فِي بَدَنِي، اللَّهُمَّ عَافِنِي فِي سَمْعِي، اللَّهُمَّ عَافِنِي فِي بَصَرِي، لَا إِلَهَ إِلَّا أَنْتَ`,tr:`Allāhumma ʿāfinī fī badanī, Allāhumma ʿāfinī fī samʿī, Allāhumma ʿāfinī fī baṣarī, lā ilāha illā ant`,en:`O Allah, grant my body wellbeing; O Allah, grant my hearing wellbeing; O Allah, grant my sight wellbeing. There is no god but You.`,note:`×3 morning & evening · Abū Dāwūd`},
+   {ar:`اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ فِي الدُّنْيَا وَالْآخِرَةِ`,tr:`Allāhumma innī as'alukal-ʿafwa wal-ʿāfiyata fid-dunyā wal-ākhirah`,en:`O Allah, I ask You for pardon and wellbeing in this world and the Hereafter.`,note:`Ibn Mājah`},
+   {ar:`أَعُوذُ بِاللَّهِ وَقُدْرَتِهِ مِنْ شَرِّ مَا أَجِدُ وَأُحَاذِرُ`,tr:`Bismillāh (×3). Aʿūdhu billāhi wa qudratihi min sharri mā ajidu wa uḥādhir (×7)`,en:`Say Bismillāh three times, then: I seek refuge in Allah and His power from the evil of what I feel and fear — seven times, over the place of pain.`,note:`for pain in the body · Muslim`}]},
+ {cat:"Grief & hardship",items:[
+   {ar:`لَا إِلَهَ إِلَّا اللَّهُ الْعَظِيمُ الْحَلِيمُ، لَا إِلَهَ إِلَّا اللَّهُ رَبُّ الْعَرْشِ الْعَظِيمِ، لَا إِلَهَ إِلَّا اللَّهُ رَبُّ السَّمَاوَاتِ وَرَبُّ الْأَرْضِ وَرَبُّ الْعَرْشِ الْكَرِيمِ`,tr:`Lā ilāha illallāhul-ʿAẓīmul-Ḥalīm, lā ilāha illallāhu Rabbul-ʿarshil-ʿaẓīm, lā ilāha illallāhu Rabbus-samāwāti wa Rabbul-arḍi wa Rabbul-ʿarshil-karīm`,en:`There is no god but Allah, the Magnificent, the Forbearing; no god but Allah, Lord of the Mighty Throne; no god but Allah, Lord of the heavens, the earth, and the Noble Throne.`,note:`the du'ā of distress · Bukhārī & Muslim`},
+   {ar:`اللَّهُمَّ رَحْمَتَكَ أَرْجُو فَلَا تَكِلْنِي إِلَى نَفْسِي طَرْفَةَ عَيْنٍ، وَأَصْلِحْ لِي شَأْنِي كُلَّهُ، لَا إِلَهَ إِلَّا أَنْتَ`,tr:`Allāhumma raḥmataka arjū falā takilnī ilā nafsī ṭarfata ʿayn, wa aṣliḥ lī sha'nī kullah, lā ilāha illā ant`,en:`O Allah, it is Your mercy I hope for, so do not leave me to myself for even the blink of an eye, and set right all my affairs. There is no god but You.`,note:`Abū Dāwūd`}]},
+ {cat:"Light of the heart (Nūr)",items:[
+   {ar:`اللَّهُمَّ اجْعَلْ فِي قَلْبِي نُورًا، وَفِي لِسَانِي نُورًا، وَفِي سَمْعِي نُورًا، وَفِي بَصَرِي نُورًا، وَمِنْ فَوْقِي نُورًا، وَمِنْ تَحْتِي نُورًا، وَعَنْ يَمِينِي نُورًا، وَعَنْ شِمَالِي نُورًا، وَمِنْ أَمَامِي نُورًا، وَمِنْ خَلْفِي نُورًا، وَاجْعَلْ لِي نُورًا`,tr:`Allāhummaj-ʿal fī qalbī nūran, wa fī lisānī nūran, wa fī samʿī nūran, wa fī baṣarī nūran, wa min fawqī nūran, wa min taḥtī nūran, wa ʿan yamīnī nūran, wa ʿan shimālī nūran, wa min amāmī nūran, wa min khalfī nūran, wajʿal lī nūrā`,en:`O Allah, place light in my heart, my tongue, my hearing, my sight; above me, below me, to my right, to my left, before me, behind me — and grant me light.`,note:`Bukhārī & Muslim`}]},
+ {cat:"Refuge & a sound heart",items:[
+   {ar:`اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عِلْمٍ لَا يَنْفَعُ، وَمِنْ قَلْبٍ لَا يَخْشَعُ، وَمِنْ نَفْسٍ لَا تَشْبَعُ، وَمِنْ دَعْوَةٍ لَا يُسْتَجَابُ لَهَا`,tr:`Allāhumma innī aʿūdhu bika min ʿilmin lā yanfaʿ, wa min qalbin lā yakhshaʿ, wa min nafsin lā tashbaʿ, wa min daʿwatin lā yustajābu lahā`,en:`O Allah, I seek refuge in You from knowledge that does not benefit, a heart that is not humble, a soul that is never satisfied, and a supplication that is not answered.`,note:`Muslim`},
+   {ar:`اللَّهُمَّ إِنِّي أَسْأَلُكَ قَلْبًا سَلِيمًا، وَلِسَانًا صَادِقًا، وَأَسْأَلُكَ مِنْ خَيْرِ مَا تَعْلَمُ، وَأَعُوذُ بِكَ مِنْ شَرِّ مَا تَعْلَمُ، وَأَسْتَغْفِرُكَ لِمَا تَعْلَمُ`,tr:`Allāhumma innī as'aluka qalban salīman, wa lisānan ṣādiqan, wa as'aluka min khayri mā taʿlam, wa aʿūdhu bika min sharri mā taʿlam, wa astaghfiruka limā taʿlam`,en:`O Allah, I ask You for a sound heart and a truthful tongue; I ask You for the good You know, seek refuge from the evil You know, and seek Your forgiveness for what You know.`,note:`Tirmidhī`}]},
+ {cat:"Family & offspring",items:[
+   {ar:`رَبَّنَا هَبْ لَنَا مِنْ أَزْوَاجِنَا وَذُرِّيَّاتِنَا قُرَّةَ أَعْيُنٍ وَاجْعَلْنَا لِلْمُتَّقِينَ إِمَامًا`,tr:`Rabbanā hab lanā min azwājinā wa dhurriyyātinā qurrata aʿyun wajʿalnā lil-muttaqīna imāmā`,en:`Our Lord, grant us from our spouses and offspring comfort to our eyes, and make us leaders for the righteous.`,note:`Qur'ān 25:74`},
+   {ar:`رَبِّ هَبْ لِي مِنْ لَدُنْكَ ذُرِّيَّةً طَيِّبَةً إِنَّكَ سَمِيعُ الدُّعَاءِ`,tr:`Rabbi hab lī min ladunka dhurriyyatan ṭayyibah, innaka samīʿud-duʿā'`,en:`My Lord, grant me from Yourself righteous offspring. Indeed, You are the Hearer of supplication.`,note:`the du'ā of Zakariyyā · Qur'ān 3:38`}]}
+];
+function vDualib(a){
+  backHeader(a,"Du'ā Library","Masnūn du'ās for every moment");
+  DUALIB.forEach(g=>{
+    const card=el(`<div class="card"><button class="cathead" style="background:none;border:none;color:var(--gold);width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;padding:0;font-family:inherit">
+      <span class="label" style="margin:0">${g.cat}</span><span class="chev" style="font-size:20px">＋</span></button>
+      <div class="body" style="padding-left:0"></div></div>`);
+    const body=card.querySelector(".body");
+    g.items.forEach(d=>body.appendChild(el(`<div class="dua"><div class="ar" style="text-align:right;font-size:20px;color:var(--cream)">${d.ar}</div><div class="dtr serif" style="font-style:italic;margin-top:6px">${d.tr}</div><div class="en" style="color:var(--muted);font-size:13px;margin-top:5px">${d.en}${d.note?` <span style="color:var(--gold)">· ${d.note}</span>`:''}</div></div>`)));
+    const chev=card.querySelector(".chev");
+    card.querySelector(".cathead").onclick=()=>{const sh=body.classList.toggle("show");chev.textContent=sh?"−":"＋";};
+    a.appendChild(card);
   });
-  const add=el(`<button class="addbtn">＋ Add a habit</button>`);
-  add.onclick=()=>showHabitForm(a);
-  a.appendChild(add);
-  a.appendChild(el(`<p class="note">From Atomic Habits: shrink it till it's almost too easy (the 2-minute rule), attach it to something you already do (stacking), and let it shape who you are — not "I want to read," but <b>"I'm someone who reads."</b></p>`));
-}
-function showHabitForm(a){
-  const f=el(`<div class="card">
-    <label class="fld">Habit name</label><input id="hn" placeholder="e.g. Read Qur'an after Fajr">
-    <label class="fld">I'm someone who…</label><input id="hi" placeholder="cares for her deen">
-    <label class="fld">2-minute version</label><input id="ht" placeholder="Open the Qur'an app">
-    <label class="fld">Habit stack (after I…, I will…)</label><input id="hs" placeholder="After I pray Fajr, I will read one ayah">
-    <button class="primary">Save habit</button><button class="ghost">Cancel</button></div>`);
-  f.querySelector(".primary").onclick=()=>{
-    const n=f.querySelector("#hn").value.trim(); if(!n)return;
-    S.habits.push({id:"h"+Date.now(),name:n,identity:f.querySelector("#hi").value.trim(),two:f.querySelector("#ht").value.trim(),stack:f.querySelector("#hs").value.trim()});
-    save();render();
-  };
-  f.querySelector(".ghost").onclick=()=>render();
-  a.appendChild(f);
+  a.appendChild(el(`<p class="note">Tap a moment to open its du'ās. These are all from the Qur'ān and authentic sunnah — the Prophet's ﷺ own words for the whole of your day.</p>`));
 }
 
-/* READING */
-function vReading(a){
-  backHeader(a,"Reading","Grow your mind, one page");
-  S.books.forEach(b=>{
-    const pct=b.total?Math.min(100,Math.round(b.current/b.total*100)):0;
-    const it=el(`<div class="item"><div class="hn serif">${b.title}</div><div class="meta">${b.author||""}</div>
-      <div class="progress"><i style="width:${pct}%"></i></div>
-      <div class="meta"><b>${b.current}</b> / ${b.total||"?"} pages · ${pct}%</div>
-      <label class="fld">Current page</label><input type="number" value="${b.current}" min="0">
-      <label class="fld">Notes / what struck you</label><textarea placeholder="A line worth remembering…">${b.notes||""}</textarea>
-      <button class="del">remove book</button></div>`);
-    const inp=it.querySelector("input"), ta=it.querySelector("textarea");
-    inp.onchange=()=>{b.current=+inp.value||0;save();render();};
-    ta.onchange=()=>{b.notes=ta.value;save();};
-    it.querySelector(".del").onclick=()=>{if(confirm("Remove this book?")){S.books=S.books.filter(x=>x.id!=b.id);save();render();}};
-    a.appendChild(it);
-  });
-  const add=el(`<button class="addbtn">＋ Add a book</button>`);
-  add.onclick=()=>{const f=el(`<div class="card"><label class="fld">Title</label><input id="bt">
-    <label class="fld">Author</label><input id="ba"><label class="fld">Total pages</label><input id="bp" type="number">
-    <button class="primary">Add</button><button class="ghost">Cancel</button></div>`);
-    f.querySelector(".primary").onclick=()=>{const t=f.querySelector("#bt").value.trim();if(!t)return;
-      S.books.push({id:"b"+Date.now(),title:t,author:f.querySelector("#ba").value.trim(),total:+f.querySelector("#bp").value||0,current:0,notes:""});save();render();};
-    f.querySelector(".ghost").onclick=()=>render(); a.appendChild(f);};
-  a.appendChild(add);
-}
-
-/* JOURNAL */
-const JPROMPTS=["What did I do for my deen today?","What am I grateful to Allah for right now?","One goal for this week, inshaAllah","Where did I feel closest to Allah lately?","What do I want to leave behind?","A du'ā on my heart today"];
-function vJournal(a){
-  backHeader(a,"Journal","Your goals & reflections");
-  const prompt=JPROMPTS[dayOfYear()%JPROMPTS.length];
-  const f=el(`<div class="card card-soft"><p class="label">Prompt for today</p>
+/* MUḤĀSABAH */
+const MPROMPTS=["What good did I do today, seeking Allah's face?","What do I need to seek forgiveness for tonight?","Did I wrong anyone today — and how can I make it right?","How present was my heart in ṣalāh today?","What blessing of Allah did I overlook today?","One thing I'll do better tomorrow, inshaAllah?","Where did I feel closest to Allah today?"];
+function vMuhasabah(a){
+  backHeader(a,"Muḥāsabah","Hold yourself gently to account");
+  const prompt=MPROMPTS[dayOfYear()%MPROMPTS.length];
+  const f=el(`<div class="card card-soft"><p class="label">Tonight's reckoning</p>
     <p class="serif" style="font-size:20px;margin:2px 0 10px">${prompt}</p>
-    <textarea id="jt" placeholder="Write freely…"></textarea><button class="primary">Save entry</button></div>`);
-  f.querySelector(".primary").onclick=()=>{const t=f.querySelector("#jt").value.trim();if(!t)return;
-    S.journal.unshift({id:Date.now(),date:tkey(),prompt,text:t});save();render();};
+    <textarea id="mt" placeholder="Be honest — and be gentle with yourself…"></textarea><button class="primary">Save</button></div>`);
+  f.querySelector(".primary").onclick=()=>{const t=f.querySelector("#mt").value.trim();if(!t)return;S.muhasabah.unshift({id:Date.now(),date:tkey(),prompt,text:t});save();render();};
   a.appendChild(f);
-  if(S.journal.length){const c=el(`<div class="card"><p class="label">Your entries</p></div>`);
-    S.journal.forEach(j=>{const e=el(`<div class="jentry"><div class="jd">${gregLong(new Date(j.date))} · ${j.prompt||""}</div>
-      <div class="jt">${j.text.replace(/</g,"&lt;")}</div><button class="del">delete</button></div>`);
-      e.querySelector(".del").onclick=()=>{if(confirm("Delete entry?")){S.journal=S.journal.filter(x=>x.id!=j.id);save();render();}};
-      c.appendChild(e);});
+  a.appendChild(el(`<p class="note">ʿUmar (RA) said: take account of yourselves before you are taken to account. Keep it kind — <b>the aim is return, not despair.</b></p>`));
+  if(S.muhasabah.length){const c=el(`<div class="card"><p class="label">Past reckonings</p></div>`);
+    S.muhasabah.forEach(j=>{const e=el(`<div class="jentry"><div class="jd">${gregLong(new Date(j.date))} · ${j.prompt||''}</div><div class="jt">${j.text.replace(/</g,"&lt;")}</div><button class="del">delete</button></div>`);
+      e.querySelector(".del").onclick=()=>{S.muhasabah=S.muhasabah.filter(x=>x.id!=j.id);save();render();};c.appendChild(e);});
     a.appendChild(c);}
 }
 
-/* BECOMING */
-const VIS=[["spiritual","Spiritual","Closeness to Allah, salah, Qur'an…"],
-["character","Character & Heart","The akhlaq I want to be known for…"],
-["knowledge","Knowledge","What I want to learn — deen & dunya…"],
-["health","Health & Body","Caring for my amanah — movement, rest, nourishment…"],
-["provision","Provision & Work","Halal rizq, the work I'm building…"],
-["leaving","Leaving Behind","Habits & thoughts I'm letting go of…"],
-["becoming","Who I'm Becoming","The woman I'm growing into, inshaAllah…"]];
-function vBecoming(a){
-  backHeader(a,"Becoming Her","A vision, held lightly");
-  a.appendChild(el(`<p class="note" style="margin-top:0">Not a checklist — a quiet picture of who you're walking toward. It saves as you write.</p>`));
-  const c=el(`<div class="card vis"></div>`);
-  VIS.forEach(([k,n,ph])=>{
-    const ta=el(`<div><label class="fld">${n}</label><textarea placeholder="${ph}">${S.vision[k]||""}</textarea></div>`);
-    ta.querySelector("textarea").onchange=e=>{S.vision[k]=e.target.value;save();};
-    c.appendChild(ta);
+/* ʿILM */
+function vIlm(a){
+  backHeader(a,"ʿIlm","Seeking knowledge is worship");
+  S.ilm.forEach(it=>{
+    const card=el(`<div class="item"><div class="hbtop"><div style="flex:1"><div class="hn serif">${it.title}</div><div class="meta">${it.source||''}${it.type?' · '+it.type:''}</div></div>
+      <button class="hcheck ${it.done?'on':''}"></button></div>
+      <label class="fld">Notes</label><textarea placeholder="What you're learning…">${(it.notes||'').replace(/</g,"&lt;")}</textarea>
+      <button class="del">remove</button></div>`);
+    card.querySelector(".hcheck").onclick=()=>{it.done=!it.done;save();render();};
+    card.querySelector("textarea").onchange=e=>{it.notes=e.target.value;save();};
+    card.querySelector(".del").onclick=()=>{if(confirm("Remove this?")){S.ilm=S.ilm.filter(x=>x.id!=it.id);save();render();}};
+    a.appendChild(card);
   });
-  a.appendChild(c);
+  const add=el(`<button class="addbtn">＋ Add a lecture, book or course</button>`);
+  add.onclick=()=>{const f=el(`<div class="card"><label class="fld">Title</label><input id="it"><label class="fld">Teacher / source</label><input id="is"><label class="fld">Type — lecture, book, course</label><input id="iy"><button class="primary">Add</button><button class="ghost">Cancel</button></div>`);
+    f.querySelector(".primary").onclick=()=>{const t=f.querySelector("#it").value.trim();if(!t)return;S.ilm.push({id:Date.now(),title:t,source:f.querySelector("#is").value.trim(),type:f.querySelector("#iy").value.trim(),notes:"",done:false});save();render();};
+    f.querySelector(".ghost").onclick=()=>render();a.appendChild(f);};
+  a.appendChild(add);
+  a.appendChild(el(`<p class="note"><b>"Whoever treads a path seeking knowledge, Allah eases for him a path to Jannah."</b> (Muslim) — track your ḥalaqahs, lectures and books of deen here.</p>`));
 }
 
-/* SOLO DATES */
-function resizeImg(file){return new Promise((res,rej)=>{const r=new FileReader();
-  r.onload=()=>{const img=new Image();img.onload=()=>{const max=720;let{width:w,height:h}=img;
-    if(w>h&&w>max){h=h*max/w;w=max;}else if(h>max){w=w*max/h;h=max;}
-    const cv=document.createElement("canvas");cv.width=w;cv.height=h;cv.getContext("2d").drawImage(img,0,0,w,h);
-    res(cv.toDataURL("image/jpeg",0.6));};img.onerror=rej;img.src=r.result;};
-  r.onerror=rej;r.readAsDataURL(file);});}
-function vSolo(a){
-  backHeader(a,"Solo Dates","Time, just for you");
-  const all=[...SOLO.map((t,i)=>({id:"s"+i,title:t})),...S.soloCustom];
-  const g=el(`<div class="solo"></div>`);
-  all.forEach(idea=>{
-    const rec=S.soloDone[idea.id]; const done=rec&&rec.done;
-    const card=el(`<div class="scard ${done?'done':''}">
-      ${done?'<span class="badge">DONE ✦</span>':''}
-      ${rec&&rec.photo?`<img class="ph" src="${rec.photo}">`:`<div class="ph-empty">❀</div>`}
-      <div class="st"><div class="stn">${idea.title}</div></div>
-      <button class="sact">${done?'✓ Add / change photo':'Mark done + add photo'}</button>
-      <input type="file" accept="image/*" capture="environment" class="hidden"></div>`);
-    const fileIn=card.querySelector("input");
-    card.querySelector(".sact").onclick=()=>fileIn.click();
-    fileIn.onchange=async()=>{ if(!fileIn.files[0])return;
-      try{const b64=await resizeImg(fileIn.files[0]);
-        S.soloDone[idea.id]={done:true,photo:b64};save();render();}
-      catch(e){alert("Couldn't read that photo, try another.");} };
-    g.appendChild(card);
+/* SACRED DAYS */
+function nextHijri(tm,td){
+  const now=new Date(); now.setHours(0,0,0,0);
+  for(let i=0;i<400;i++){ const dt=new Date(now); dt.setDate(now.getDate()+i); const h=hijriDM(dt); if(h&&h.mon==tm&&h.day==td) return {date:dt,days:i}; }
+  return null;
+}
+function nextWhite(){
+  const now=new Date(); now.setHours(0,0,0,0);
+  for(let i=0;i<40;i++){ const dt=new Date(now); dt.setDate(now.getDate()+i); const h=hijriDM(dt); if(h&&h.day==13) return {date:dt,days:i}; }
+  return null;
+}
+function vSacred(a){
+  backHeader(a,"Sacred Days","The best days are coming");
+  const events=[
+    ["Ramaḍān",9,1,"The month of the Qur'ān"],
+    ["First 10 of Dhul-Ḥijjah",12,1,"The most beloved days for good deeds"],
+    ["Day of ʿArafah",12,9,"A fast that wipes two years"],
+    ["ʿEid al-Aḍḥā",12,10,"The day of sacrifice"],
+    ["ʿEid al-Fiṭr",10,1,"The reward after Ramaḍān"],
+    ["ʿĀshūrāʾ",1,10,"A fast that wipes the past year"]
+  ];
+  const rows=events.map(([n,m,d,sub])=>{const nx=nextHijri(m,d);return nx?[n,sub,nx]:null;}).filter(Boolean).sort((x,y)=>x[2].days-y[2].days);
+  rows.forEach(([n,sub,nx])=>{
+    a.appendChild(el(`<div class="card"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+      <div><div class="serif" style="font-size:22px">${n}</div><div class="meta">${sub}</div></div>
+      <div style="text-align:right"><div class="serif" style="font-size:32px;color:var(--gold);line-height:1">${nx.days===0?'Today':nx.days}</div><div class="meta">${nx.days===0?'✦':(nx.days===1?'day away':'days away')}</div></div></div>
+      <div class="meta" style="margin-top:6px">${gregLong(nx.date)}</div></div>`));
   });
-  a.appendChild(g);
-  const add=el(`<button class="addbtn">＋ Add your own idea</button>`);
-  add.onclick=()=>{const t=prompt("Your solo date idea:");if(t&&t.trim()){S.soloCustom.push({id:"c"+Date.now(),title:t.trim()});save();render();}};
-  a.appendChild(add);
-  a.appendChild(el(`<p class="note">Pick one, go do it, and capture a photo of <b>you</b> in it. Slowly this becomes a gallery of your own becoming.</p>`));
+  const w=nextWhite();
+  if(w) a.appendChild(el(`<div class="card card-soft"><div style="display:flex;justify-content:space-between;align-items:baseline"><div><div class="serif" style="font-size:20px">Next White Days</div><div class="meta">Fast the 13th, 14th & 15th</div></div><div style="text-align:right"><div class="serif" style="font-size:28px;color:var(--gold)">${w.days===0?'Today':w.days}</div><div class="meta">${w.days===0?'✦':'days away'}</div></div></div><div class="meta" style="margin-top:6px">from ${gregLong(w.date)}</div></div>`));
+  a.appendChild(el(`<p class="note">Dates follow the moon, so they shift slightly as the sighting nears. <b>Prepare your heart before the season arrives — the best deeds are those done in these days.</b></p>`));
+}
+
+/* HADITH OF THE DAY */
+const HADITH=[
+ {ar:`إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ، وَإِنَّمَا لِكُلِّ امْرِئٍ مَا نَوَى`,t:`Actions are but by intentions, and each person will have only what he intended.`,s:`Bukhārī & Muslim`},
+ {ar:`لَا يُؤْمِنُ أَحَدُكُمْ حَتَّى يُحِبَّ لِأَخِيهِ مَا يُحِبُّ لِنَفْسِهِ`,t:`None of you truly believes until he loves for his brother what he loves for himself.`,s:`Bukhārī & Muslim`},
+ {ar:`لَيْسَ الشَّدِيدُ بِالصُّرَعَةِ، إِنَّمَا الشَّدِيدُ الَّذِي يَمْلِكُ نَفْسَهُ عِنْدَ الْغَضَبِ`,t:`The strong one is not the good wrestler; the strong one is he who controls himself when angry.`,s:`Bukhārī & Muslim`},
+ {ar:`مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَالْيَوْمِ الْآخِرِ فَلْيَقُلْ خَيْرًا أَوْ لِيَصْمُتْ`,t:`Whoever believes in Allah and the Last Day, let him speak good or stay silent.`,s:`Bukhārī & Muslim`},
+ {ar:`أَحَبُّ الْأَعْمَالِ إِلَى اللَّهِ أَدْوَمُهَا وَإِنْ قَلَّ`,t:`The deeds most beloved to Allah are the most constant, even if they are few.`,s:`Bukhārī & Muslim`},
+ {ar:`يَسِّرُوا وَلَا تُعَسِّرُوا، وَبَشِّرُوا وَلَا تُنَفِّرُوا`,t:`Make things easy and do not make them hard; give glad tidings and do not drive people away.`,s:`Bukhārī`},
+ {ar:`اتَّقِ اللَّهَ حَيْثُمَا كُنْتَ، وَأَتْبِعِ السَّيِّئَةَ الْحَسَنَةَ تَمْحُهَا، وَخَالِقِ النَّاسَ بِخُلُقٍ حَسَنٍ`,t:`Fear Allah wherever you are, follow a bad deed with a good one to erase it, and treat people with good character.`,s:`Tirmidhī`},
+ {ar:`مِنْ حُسْنِ إِسْلَامِ الْمَرْءِ تَرْكُهُ مَا لَا يَعْنِيهِ`,t:`Part of a person's excellence in Islam is leaving what does not concern him.`,s:`Tirmidhī`},
+ {ar:`إِنَّ اللَّهَ لَا يَنْظُرُ إِلَى صُوَرِكُمْ وَأَمْوَالِكُمْ، وَلَكِنْ يَنْظُرُ إِلَى قُلُوبِكُمْ وَأَعْمَالِكُمْ`,t:`Allah does not look at your forms or wealth, but at your hearts and your deeds.`,s:`Muslim`},
+ {ar:`مَنْ لَا يَشْكُرُ النَّاسَ لَا يَشْكُرُ اللَّهَ`,t:`Whoever does not thank people has not thanked Allah.`,s:`Abū Dāwūd & Tirmidhī`},
+ {ar:`خَيْرُكُمْ خَيْرُكُمْ لِأَهْلِهِ`,t:`The best of you are the best to their families.`,s:`Tirmidhī`},
+ {ar:`الْكَلِمَةُ الطَّيِّبَةُ صَدَقَةٌ`,t:`A kind word is a charity.`,s:`Bukhārī & Muslim`},
+ {ar:`تَبَسُّمُكَ فِي وَجْهِ أَخِيكَ لَكَ صَدَقَةٌ`,t:`Smiling in the face of your brother is a charity.`,s:`Tirmidhī`},
+ {ar:`مَنْ نَفَّسَ عَنْ مُؤْمِنٍ كُرْبَةً مِنْ كُرَبِ الدُّنْيَا، نَفَّسَ اللَّهُ عَنْهُ كُرْبَةً مِنْ كُرَبِ يَوْمِ الْقِيَامَةِ`,t:`Whoever relieves a believer of a hardship, Allah will relieve him of a hardship on the Day of Resurrection.`,s:`Muslim`},
+ {ar:`لَيْسَ الْغِنَى عَنْ كَثْرَةِ الْعَرَضِ، وَلَكِنَّ الْغِنَى غِنَى النَّفْسِ`,t:`True richness is not an abundance of possessions, but richness of the soul.`,s:`Bukhārī & Muslim`},
+ {ar:`مَنْ سَلَكَ طَرِيقًا يَلْتَمِسُ فِيهِ عِلْمًا، سَهَّلَ اللَّهُ لَهُ بِهِ طَرِيقًا إِلَى الْجَنَّةِ`,t:`Whoever treads a path seeking knowledge, Allah makes easy for him a path to Paradise.`,s:`Muslim`},
+ {ar:`الْحَيَاءُ لَا يَأْتِي إِلَّا بِخَيْرٍ`,t:`Modesty brings nothing but good.`,s:`Bukhārī & Muslim`},
+ {ar:`مَنْ سَتَرَ مُسْلِمًا سَتَرَهُ اللَّهُ فِي الدُّنْيَا وَالْآخِرَةِ`,t:`Whoever conceals the faults of a Muslim, Allah conceals his faults in this world and the next.`,s:`Muslim`},
+ {ar:`أَكْمَلُ الْمُؤْمِنِينَ إِيمَانًا أَحْسَنُهُمْ خُلُقًا`,t:`The most complete of believers in faith are those with the best character.`,s:`Tirmidhī`},
+ {ar:`إِيَّاكُمْ وَالظَّنَّ، فَإِنَّ الظَّنَّ أَكْذَبُ الْحَدِيثِ`,t:`Beware of suspicion, for suspicion is the falsest of speech.`,s:`Bukhārī & Muslim`},
+ {ar:`إِنَّ اللَّهَ جَمِيلٌ يُحِبُّ الْجَمَالَ`,t:`Allah is beautiful and loves beauty.`,s:`Muslim`},
+ {ar:`مَنْ دَلَّ عَلَى خَيْرٍ فَلَهُ مِثْلُ أَجْرِ فَاعِلِهِ`,t:`Whoever guides another to good has a reward like the one who does it.`,s:`Muslim`},
+ {ar:`كَلِمَتَانِ خَفِيفَتَانِ عَلَى اللِّسَانِ، ثَقِيلَتَانِ فِي الْمِيزَانِ، حَبِيبَتَانِ إِلَى الرَّحْمَنِ: سُبْحَانَ اللَّهِ وَبِحَمْدِهِ، سُبْحَانَ اللَّهِ الْعَظِيمِ`,t:`Two words light on the tongue, heavy on the scale, beloved to the Most Merciful: SubḥānAllāhi wa bi-ḥamdih, SubḥānAllāhil-ʿAẓīm.`,s:`Bukhārī & Muslim`},
+ {ar:`دَعْوَةُ الْمَرْءِ الْمُسْلِمِ لِأَخِيهِ بِظَهْرِ الْغَيْبِ مُسْتَجَابَةٌ`,t:`The supplication of a Muslim for his absent brother is answered.`,s:`Muslim`},
+ {ar:`مَنْ لَا يَرْحَمُ النَّاسَ لَا يَرْحَمُهُ اللَّهُ`,t:`Whoever is not merciful to people, Allah will not be merciful to him.`,s:`Bukhārī & Muslim`},
+ {ar:`الْيَدُ الْعُلْيَا خَيْرٌ مِنَ الْيَدِ السُّفْلَى`,t:`The upper hand that gives is better than the lower hand that receives.`,s:`Bukhārī & Muslim`},
+ {ar:`مَا نَقَصَتْ صَدَقَةٌ مِنْ مَالٍ`,t:`Charity does not decrease wealth.`,s:`Muslim`},
+ {ar:`لَا يُؤْمِنُ مَنْ لَا يَأْمَنُ جَارُهُ بَوَائِقَهُ`,t:`He is not a believer whose neighbour is not safe from his harm.`,s:`Bukhārī & Muslim`},
+ {ar:`أَحَبُّ الْبِلَادِ إِلَى اللَّهِ مَسَاجِدُهَا`,t:`The most beloved of places to Allah are the mosques.`,s:`Muslim`},
+ {ar:`مَنْ أَحَبَّ لِقَاءَ اللَّهِ أَحَبَّ اللَّهُ لِقَاءَهُ`,t:`Whoever loves to meet Allah, Allah loves to meet him.`,s:`Bukhārī & Muslim`}
+];
+function vHadith(a){
+  backHeader(a,"Hadith","A light for the day");
+  let shown=dayOfYear()%HADITH.length;
+  const card=el(`<div class="card card-soft"><p class="label">Today's hadith</p>
+    <p class="ar har" style="font-size:23px;text-align:right;color:var(--cream);margin:8px 0 12px">${HADITH[shown].ar}</p>
+    <p class="serif htext" style="font-size:19px;line-height:1.35;margin:0 0 12px;font-style:italic">"${HADITH[shown].t}"</p>
+    <div class="meta hsrc" style="color:var(--gold)">${HADITH[shown].s}</div></div>`);
+  a.appendChild(card);
+  const btn=el(`<button class="ghost">Another ✦</button>`);
+  btn.onclick=()=>{shown=(shown+1)%HADITH.length;card.querySelector(".har").textContent=HADITH[shown].ar;card.querySelector(".htext").textContent='"'+HADITH[shown].t+'"';card.querySelector(".hsrc").textContent=HADITH[shown].s;};
+  a.appendChild(btn);
+  a.appendChild(el(`<p class="note">A new saying of the Prophet ﷺ greets you each day. Sit with it — one hadith, truly lived, can change a life.</p>`));
 }
 
 /* nav */
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{view=b.dataset.v;render();});
 load(); if(S._theme)applyTheme(S._theme); render();
+if('serviceWorker' in navigator){ window.addEventListener('load',()=>{ navigator.serviceWorker.register('./sw.js').catch(()=>{}); }); }
 </script>
 </body>
 </html>
